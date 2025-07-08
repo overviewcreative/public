@@ -9,7 +9,7 @@
  * @subpackage Services
  */
 
-namespace HappyPlace\Plugin\Services;
+namespace HappyPlace\Services;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;

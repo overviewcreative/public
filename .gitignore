@@ -122,7 +122,47 @@ bower_components/
 
 # Ignore all themes except your custom ones
 /wp-content/themes/*
-!/wp-content/themes/happy-place/
+!/wp-content/themes/Happy Place Theme/
+
+# Happy Place Theme specific ignores
+/wp-content/themes/Happy Place Theme/node_modules/
+/wp-content/themes/Happy Place Theme/.sass-cache/
+/wp-content/themes/Happy Place Theme/build/
+/wp-content/themes/Happy Place Theme/dist/
+/wp-content/themes/Happy Place Theme/.env*
+/wp-content/themes/Happy Place Theme/.cache/
+/wp-content/themes/Happy Place Theme/css/maps/
+/wp-content/themes/Happy Place Theme/js/maps/
+/wp-content/themes/Happy Place Theme/*.map
+/wp-content/themes/Happy Place Theme/.eslintcache
+/wp-content/themes/Happy Place Theme/.stylelintcache
+/wp-content/themes/Happy Place Theme/yarn-error.log
+/wp-content/themes/Happy Place Theme/npm-debug.log
+/wp-content/themes/Happy Place Theme/.DS_Store
+/wp-content/themes/Happy Place Theme/vendor/
+/wp-content/themes/Happy Place Theme/composer.lock
+/wp-content/themes/Happy Place Theme/package-lock.json
+/wp-content/themes/Happy Place Theme/yarn.lock
+/wp-content/themes/Happy Place Theme/mix-manifest.json
+/wp-content/themes/Happy Place Theme/hot
+
+# WordPress development files
+/wp-content/themes/Happy Place Theme/wp-stubs.php
+/wp-content/themes/Happy Place Theme/.phpcs.cache
+/wp-content/themes/Happy Place Theme/.phpcs.xml.dist
+/wp-content/themes/Happy Place Theme/phpcs.xml
+/wp-content/themes/Happy Place Theme/phpstan.neon
+/wp-content/themes/Happy Place Theme/phpunit.xml
+/wp-content/themes/Happy Place Theme/phpunit.xml.dist
+/wp-content/themes/Happy Place Theme/.php-cs-fixer.cache
+/wp-content/themes/Happy Place Theme/.php-cs-fixer.php
+/wp-content/themes/Happy Place Theme/.wp-env.json
+/wp-content/themes/Happy Place Theme/.wp-env.override.json
+/wp-content/themes/Happy Place Theme/tests/
+/wp-content/themes/Happy Place Theme/phpunit/
+/wp-content/themes/Happy Place Theme/.phpunit.result.cache
+/wp-content/themes/Happy Place Theme/coverage/
+/wp-content/themes/Happy Place Theme/.wp-cli/
 
 # Ignore all plugins except your custom ones
 /wp-content/plugins/*

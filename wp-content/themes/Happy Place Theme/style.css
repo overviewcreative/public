@@ -1,0 +1,466 @@
+/*
+Theme Name: Happy Place Theme
+Theme URI: https://happyplace.com/theme
+Author: Happy Place Team
+Author URI: https://happyplace.com
+Description: A modern, responsive theme designed for real estate professionals.
+Version: 1.0.0
+Requires at least: 5.8
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: happy-place-theme
+Tags: real-estate, modern, responsive, custom-background, custom-logo, custom-menu, featured-images
+
+Happy Place Theme © 2025 Happy Place Team
+*/
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+/* Root Variables - Design System */
+:root {
+    /* Color Palette */
+    --hph-color-primary: #0ea5e9;
+    --hph-color-primary-light: #7dd3fc;
+    --hph-color-primary-mid: #0284c7;
+    --hph-color-primary-dark: #021b27;
+    --hph-color-secondary: #97d7fb;
+    --hph-color-accent: #5bcbff;
+    
+    /* Grayscale */
+    --hph-color-white: #ffffff;
+    --hph-color-gray-50: #f9fafb;
+    --hph-color-gray-100: #f3f4f6;
+    --hph-color-gray-200: #e5e7eb;
+    --hph-color-gray-300: #d1d5db;
+    --hph-color-gray-400: #9ca3af;
+    --hph-color-gray-500: #6b7280;
+    --hph-color-gray-600: #4b5563;
+    --hph-color-gray-700: #374151;
+    --hph-color-gray-800: #1f2937;
+    --hph-color-gray-900: #111827;
+
+    /* Semantic Colors */
+    --hph-color-success: #10b981;
+    --hph-color-warning: #f59e0b;
+    --hph-color-danger: #ef4444;
+    --hph-color-info: #3b82f6;
+
+    /* Typography */
+    --hph-font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    
+    /* Font Sizes */
+    --hph-font-size-xs: 0.75rem;     /* 12px */
+    --hph-font-size-sm: 0.875rem;    /* 14px */
+    --hph-font-size-base: 1rem;      /* 16px */
+    --hph-font-size-lg: 1.125rem;    /* 18px */
+    --hph-font-size-xl: 1.25rem;     /* 20px */
+    --hph-font-size-2xl: 1.5rem;     /* 24px */
+    --hph-font-size-3xl: 1.875rem;   /* 30px */
+    --hph-font-size-4xl: 2.25rem;    /* 36px */
+
+    /* Font Weights */
+    --hph-font-thin: 100;
+    --hph-font-light: 300;
+    --hph-font-normal: 400;
+    --hph-font-medium: 500;
+    --hph-font-semibold: 600;
+    --hph-font-bold: 700;
+    --hph-font-extrabold: 800;
+
+    /* Spacing */
+    --hph-spacing-2xs: 0.25rem;   /* 4px */
+    --hph-spacing-xs: 0.5rem;     /* 8px */
+    --hph-spacing-sm: 0.75rem;    /* 12px */
+    --hph-spacing-md: 1rem;       /* 16px */
+    --hph-spacing-lg: 1.5rem;     /* 24px */
+    --hph-spacing-xl: 2rem;       /* 32px */
+    --hph-spacing-2xl: 3rem;      /* 48px */
+
+    /* Border Radius */
+    --hph-border-radius-sm: 0.25rem;   /* 4px */
+    --hph-border-radius-md: 0.5rem;    /* 8px */
+    --hph-border-radius-lg: 0.75rem;   /* 12px */
+    --hph-border-radius-xl: 1rem;      /* 16px */
+    --hph-border-radius-full: 9999px;
+
+    /* Shadows */
+    --hph-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --hph-shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --hph-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --hph-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+    /* Transitions */
+    --hph-transition-fast: 0.2s ease;
+    --hph-transition-base: 0.3s ease;
+    --hph-transition-slow: 0.5s ease;
+
+    /* Z-Index */
+    --hph-z-dropdown: 1000;
+    --hph-z-sticky: 1020;
+    --hph-z-fixed: 1030;
+    --hph-z-modal: 1040;
+}
+
+/* Reset and Base Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--hph-font-primary);
+}
+
+body {
+    font-family: var(--hph-font-primary);
+    font-size: var(--hph-font-size-base);
+    line-height: 1.6;
+    color: var(--hph-color-gray-800);
+    background-color: var(--hph-color-white);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--hph-spacing-md);
+    line-height: 1.2;
+    font-weight: var(--hph-font-semibold);
+}
+
+h1 { font-size: var(--hph-font-size-4xl); }
+h2 { font-size: var(--hph-font-size-3xl); }
+h3 { font-size: var(--hph-font-size-2xl); }
+h4 { font-size: var(--hph-font-size-xl); }
+h5 { font-size: var(--hph-font-size-lg); }
+h6 { font-size: var(--hph-font-size-base); }
+
+p {
+    margin-bottom: var(--hph-spacing-md);
+}
+
+a {
+    color: var(--hph-color-primary);
+    text-decoration: none;
+    transition: color var(--hph-transition-fast);
+}
+
+a:hover {
+    color: var(--hph-color-primary-dark);
+}
+
+/* Utility Classes */
+.hph-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--hph-spacing-md);
+}
+
+/* Badges and Tags */
+.hph-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--hph-spacing-2xs) var(--hph-spacing-xs);
+    border-radius: var(--hph-border-radius-sm);
+    font-size: var(--hph-font-size-xs);
+    font-weight: var(--hph-font-medium);
+}
+
+.hph-badge-primary {
+    background-color: var(--hph-color-primary);
+    color: var(--hph-color-white);
+}
+
+.hph-badge-secondary {
+    background-color: var(--hph-color-gray-100);
+    color: var(--hph-color-gray-700);
+}
+
+.hph-badge-success {
+    background-color: var(--hph-color-success);
+    color: var(--hph-color-white);
+}
+
+/* Buttons */
+.hph-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--hph-spacing-sm) var(--hph-spacing-md);
+    border-radius: var(--hph-border-radius-md);
+    font-size: var(--hph-font-size-sm);
+    font-weight: var(--hph-font-medium);
+    border: none;
+    cursor: pointer;
+    transition: all var(--hph-transition-fast);
+}
+
+.hph-btn-primary {
+    background-color: var(--hph-color-primary);
+    color: var(--hph-color-white);
+}
+
+.hph-btn-primary:hover {
+    background-color: var(--hph-color-primary-dark);
+}
+
+.hph-btn-secondary {
+    background-color: var(--hph-color-gray-100);
+    color: var(--hph-color-gray-700);
+}
+
+.hph-btn-secondary:hover {
+    background-color: var(--hph-color-gray-200);
+}
+
+/* Form Elements */
+.hph-form-group {
+    margin-bottom: var(--hph-spacing-md);
+}
+
+.hph-form-label {
+    display: block;
+    margin-bottom: var(--hph-spacing-xs);
+    font-size: var(--hph-font-size-sm);
+    font-weight: var(--hph-font-medium);
+    color: var(--hph-color-gray-700);
+}
+
+.hph-form-input,
+.hph-form-select,
+.hph-form-textarea {
+    width: 100%;
+    padding: var(--hph-spacing-sm) var(--hph-spacing-md);
+    border: 1px solid var(--hph-color-gray-300);
+    border-radius: var(--hph-border-radius-md);
+    font-size: var(--hph-font-size-base);
+    transition: border-color var(--hph-transition-fast);
+}
+
+.hph-form-input:focus,
+.hph-form-select:focus,
+.hph-form-textarea:focus {
+    outline: none;
+    border-color: var(--hph-color-primary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Card Component */
+.hph-card {
+    background-color: var(--hph-color-white);
+    border-radius: var(--hph-border-radius-lg);
+    box-shadow: var(--hph-shadow-base);
+    overflow: hidden;
+    transition: all var(--hph-transition-base);
+}
+
+.hph-card:hover {
+    box-shadow: var(--hph-shadow-lg);
+    transform: translateY(-5px);
+}
+
+.hph-card-image {
+    width: 100%;
+    height: 250px;
+    background-color: var(--hph-color-gray-200);
+    object-fit: cover;
+}
+
+.hph-card-content {
+    padding: var(--hph-spacing-lg);
+}
+
+/* Responsive Grid */
+.hph-grid {
+    display: grid;
+    gap: var(--hph-spacing-lg);
+}
+
+.hph-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.hph-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    .hph-grid-3,
+    .hph-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hph-grid-3,
+    .hph-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    h1 { font-size: var(--hph-font-size-3xl); }
+    h2 { font-size: var(--hph-font-size-2xl); }
+}
+
+/* Real Estate Components */
+
+/* Listing Components */
+.hph-listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--hph-spacing-xl);
+    margin: var(--hph-spacing-xl) 0;
+}
+
+.hph-listing-card {
+    background: var(--hph-color-white);
+    border-radius: var(--hph-border-radius-lg);
+    box-shadow: var(--hph-shadow-base);
+    overflow: hidden;
+    transition: transform var(--hph-transition-fast);
+}
+
+.hph-listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hph-shadow-lg);
+}
+
+.hph-listing-thumbnail {
+    position: relative;
+    padding-top: 66.67%; /* 3:2 aspect ratio */
+}
+
+.hph-listing-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hph-listing-details {
+    padding: var(--hph-spacing-lg);
+}
+
+.hph-listing-meta {
+    margin-top: var(--hph-spacing-md);
+    font-size: var(--hph-font-size-sm);
+    color: var(--hph-color-gray-600);
+}
+
+.hph-listing-meta > * {
+    margin-right: var(--hph-spacing-md);
+}
+
+.hph-listing-meta i {
+    margin-right: var(--hph-spacing-2xs);
+    color: var(--hph-color-primary);
+}
+
+/* Single Listing */
+.hph-single-listing {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hph-listing-gallery {
+    margin: var(--hph-spacing-xl) 0;
+}
+
+.hph-listing-features {
+    background: var(--hph-color-gray-100);
+    padding: var(--hph-spacing-xl);
+    margin: var(--hph-spacing-xl) 0;
+    border-radius: var(--hph-border-radius-lg);
+}
+
+.hph-listing-features ul {
+    columns: 2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hph-listing-features li {
+    margin-bottom: var(--hph-spacing-xs);
+}
+
+.hph-listing-features i {
+    color: var(--hph-color-primary);
+    margin-right: var(--hph-spacing-xs);
+}
+
+/* Listing Filters */
+.hph-listing-filters {
+    background: var(--hph-color-gray-100);
+    padding: var(--hph-spacing-lg);
+    margin-bottom: var(--hph-spacing-xl);
+    border-radius: var(--hph-border-radius-lg);
+}
+
+.hph-filter-group {
+    margin-bottom: var(--hph-spacing-md);
+}
+
+.hph-filter-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Form Messaging */
+.hph-form-message {
+    padding: var(--hph-spacing-md);
+    margin: var(--hph-spacing-md) 0;
+    border-radius: var(--hph-border-radius-md);
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: var(--hph-z-modal);
+    animation: hph-slideIn 0.3s ease-out;
+}
+
+.hph-form-message.success {
+    background-color: var(--hph-color-success);
+    color: var(--hph-color-white);
+}
+
+.hph-form-message.error {
+    background-color: var(--hph-color-danger);
+    color: var(--hph-color-white);
+}
+
+@keyframes hph-slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* File Upload Styles */
+.hph-form-upload {
+    display: block;
+    margin-top: var(--hph-spacing-xs);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+/* Responsive Adjustments for Real Estate Components */
+@media (max-width: 768px) {
+    .hph-listings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hph-listing-features ul {
+        columns: 1;
+    }
+}

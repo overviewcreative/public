@@ -9,7 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class HP_Database {
+namespace HappyPlace;
+
+class Database {
     /**
      * Constructor
      */

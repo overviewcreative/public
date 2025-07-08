@@ -1,0 +1,160 @@
+/* Modal Base */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal__backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal__content {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px);
+    transition: transform var(--transition-normal);
+}
+
+.modal.active .modal__content {
+    transform: translateY(0);
+}
+
+.modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.modal__title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+}
+
+.modal__close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.modal__close:hover {
+    background-color: var(--color-gray-100);
+}
+
+.modal__body {
+    padding: var(--space-4);
+}
+
+.modal__footer {
+    padding: var(--space-4);
+    border-top: 1px solid var(--color-gray-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
+/* Lightbox Modal */
+.lightbox.modal {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox .modal__content {
+    background: none;
+    box-shadow: none;
+    max-width: 90vw;
+}
+
+.lightbox .modal__close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    color: white;
+    z-index: 1;
+}
+
+.lightbox .modal__close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.lightbox__image {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+.lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 var(--space-4);
+}
+
+.lightbox__button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-full);
+    color: white;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.lightbox__button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Modals */
+@media (max-width: 768px) {
+    .modal__content {
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .lightbox .modal__content {
+        width: 100vw;
+        height: 100vh;
+    }
+}

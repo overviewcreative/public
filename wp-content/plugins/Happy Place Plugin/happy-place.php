@@ -27,8 +27,21 @@ define('HPH_PLUGIN_URL', plugin_dir_url(__FILE__));
 spl_autoload_register(function($class) {
     // Only autoload our plugin classes
     if (strpos($class, 'HappyPlace\\') === 0) {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, strtolower(substr($class, strlen('HappyPlace\\'))));
-        $file = HPH_PLUGIN_DIR . 'includes/' . $path . '.php';
+        // Convert namespace to path and add class- prefix for classes
+        $path = substr($class, strlen('HappyPlace\\'));
+        $parts = explode('\\', $path);
+        $className = array_pop($parts);
+        
+        // Convert class name to kebab case with class- prefix
+        $fileName = 'class-' . strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $className));
+        
+        // Build the final path
+        $path = strtolower(implode(DIRECTORY_SEPARATOR, $parts));
+        if ($path) {
+            $path .= DIRECTORY_SEPARATOR;
+        }
+        
+        $file = HPH_PLUGIN_DIR . 'includes/' . $path . $fileName . '.php';
         
         if (file_exists($file)) {
             require_once $file;
@@ -36,15 +49,16 @@ spl_autoload_register(function($class) {
     }
 });
 
-class happy_place_plugin {
+class Plugin {
     private static ?self $instance = null;
 
     // Plugin components
     private $components = [
-        'post_types'     => '\core\post_types',
-        'taxonomies'     => '\core\taxonomies',
-        'field_groups'   => '\fields\acf_field_groups',
-        'form_handler'   => '\forms\frontend_form_handler'
+        'post_types'     => '\Core\PostTypes',
+        'taxonomies'     => '\Core\Taxonomies',
+        'field_groups'   => '\Fields\AcfFieldGroups',
+        'form_handler'   => '\Forms\FormHandler',
+        'property'       => '\PostTypes\Property'
     ];
 
     public static function get_instance(): self {
@@ -74,6 +88,7 @@ class happy_place_plugin {
         // Core WordPress hooks
         add_action('plugins_loaded', [$this, 'load_textdomain']);
         add_action('init', [$this, 'init_components'], 0);
+        add_action('init', [$this, 'maybe_flush_rewrite_rules'], 20);
         add_action('admin_notices', [$this, 'check_dependencies']);
         
         // Plugin activation/deactivation hooks
@@ -137,8 +152,21 @@ class happy_place_plugin {
         // Initialize components to ensure everything is registered
         $this->init_components();
         
-        // Flush rewrite rules
-        flush_rewrite_rules();
+        // Explicitly register post types
+        \HappyPlace\Core\PostTypes::get_instance()->register_post_types();
+        
+        // Set flag to flush rewrite rules
+        update_option('hph_flush_rewrite_rules', 'yes');
+    }
+
+    /**
+     * Hook into init to flush rewrite rules if needed
+     */
+    public function maybe_flush_rewrite_rules(): void {
+        if (get_option('hph_flush_rewrite_rules') === 'yes') {
+            flush_rewrite_rules();
+            delete_option('hph_flush_rewrite_rules');
+        }
     }
 
     /**
@@ -151,4 +179,4 @@ class happy_place_plugin {
 }
 
 // Initialize the plugin
-happy_place_plugin::get_instance();
+Plugin::get_instance();
