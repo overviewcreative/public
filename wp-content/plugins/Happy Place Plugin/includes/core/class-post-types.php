@@ -21,176 +21,66 @@ class Post_Types {
     }
 
     private function __construct() {
-        // Use standard priority (10) to avoid conflicts
-        add_action('init', [$this, 'register_post_types']);
-        add_action('init', [$this, 'register_taxonomies']);
+        // Only add the hook if we're not in activation context
+        if (!defined('WP_INSTALLING') || !WP_INSTALLING) {
+            add_action('init', [$this, 'register_post_types']);
+        }
     }
 
     /**
      * Register all custom post types
      */
     public function register_post_types(): void {
-        // Listing post type
-        register_post_type('listing', [
+        // Property post type
+        register_post_type('property', [
             'labels' => [
-                'name' => __('Listings', 'happy-place'),
-                'singular_name' => __('Listing', 'happy-place'),
-                'add_new' => __('Add New', 'happy-place'),
-                'add_new_item' => __('Add New Listing', 'happy-place'),
-                'edit_item' => __('Edit Listing', 'happy-place'),
-                'new_item' => __('New Listing', 'happy-place'),
-                'view_item' => __('View Listing', 'happy-place'),
-                'search_items' => __('Search Listings', 'happy-place'),
-                'not_found' => __('No listings found', 'happy-place'),
-                'not_found_in_trash' => __('No listings found in Trash', 'happy-place'),
+                'name'               => __('Properties', 'happy-place'),
+                'singular_name'      => __('Property', 'happy-place'),
+                'menu_name'         => __('Properties', 'happy-place'),
+                'add_new'           => __('Add New', 'happy-place'),
+                'add_new_item'      => __('Add New Property', 'happy-place'),
+                'edit_item'         => __('Edit Property', 'happy-place'),
+                'new_item'          => __('New Property', 'happy-place'),
+                'view_item'         => __('View Property', 'happy-place'),
+                'search_items'      => __('Search Properties', 'happy-place'),
+                'not_found'         => __('No properties found', 'happy-place'),
+                'not_found_in_trash'=> __('No properties found in Trash', 'happy-place'),
             ],
-            'public' => true,
-            'has_archive' => true,
-            'show_in_rest' => true,
-            'menu_icon' => 'dashicons-admin-home',
-            'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
-            'rewrite' => ['slug' => 'listings']
+            'public'              => true,
+            'has_archive'         => true,
+            'show_in_rest'        => true,
+            'supports'            => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+            'menu_icon'           => 'dashicons-building',
+            'rewrite'            => ['slug' => 'properties'],
+            'capability_type'    => 'post',
+            'show_in_nav_menus'  => true,
+            'show_in_admin_bar'  => true,
         ]);
 
-        // Agent post type
-        register_post_type('agent', [
+        // Team post type
+        register_post_type('team', [
             'labels' => [
-                'name' => __('Agents', 'happy-place'),
-                'singular_name' => __('Agent', 'happy-place'),
-                'add_new' => __('Add New', 'happy-place'),
-                'add_new_item' => __('Add New Agent', 'happy-place'),
-                'edit_item' => __('Edit Agent', 'happy-place'),
-                'new_item' => __('New Agent', 'happy-place'),
-                'view_item' => __('View Agent', 'happy-place'),
-                'search_items' => __('Search Agents', 'happy-place'),
-                'not_found' => __('No agents found', 'happy-place'),
-                'not_found_in_trash' => __('No agents found in Trash', 'happy-place'),
+                'name'               => __('Teams', 'happy-place'),
+                'singular_name'      => __('Team', 'happy-place'),
+                'menu_name'         => __('Teams', 'happy-place'),
+                'add_new'           => __('Add New', 'happy-place'),
+                'add_new_item'      => __('Add New Team', 'happy-place'),
+                'edit_item'         => __('Edit Team', 'happy-place'),
+                'new_item'          => __('New Team', 'happy-place'),
+                'view_item'         => __('View Team', 'happy-place'),
+                'search_items'      => __('Search Teams', 'happy-place'),
+                'not_found'         => __('No teams found', 'happy-place'),
+                'not_found_in_trash'=> __('No teams found in Trash', 'happy-place'),
             ],
-            'public' => true,
-            'has_archive' => true,
-            'show_in_rest' => true,
-            'menu_icon' => 'dashicons-businessperson',
-            'supports' => ['title', 'editor', 'thumbnail'],
-            'rewrite' => ['slug' => 'agents']
-        ]);
-
-        // Community post type
-        register_post_type('community', [
-            'labels' => [
-                'name' => __('Communities', 'happy-place'),
-                'singular_name' => __('Community', 'happy-place'),
-                'add_new' => __('Add New', 'happy-place'),
-                'add_new_item' => __('Add New Community', 'happy-place'),
-                'edit_item' => __('Edit Community', 'happy-place'),
-                'new_item' => __('New Community', 'happy-place'),
-                'view_item' => __('View Community', 'happy-place'),
-                'search_items' => __('Search Communities', 'happy-place'),
-                'not_found' => __('No communities found', 'happy-place'),
-                'not_found_in_trash' => __('No communities found in Trash', 'happy-place'),
-            ],
-            'public' => true,
-            'has_archive' => true,
-            'show_in_rest' => true,
-            'menu_icon' => 'dashicons-groups',
-            'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
-            'rewrite' => ['slug' => 'communities']
-        ]);
-
-        // Open House post type
-        register_post_type('open-house', [
-            'labels' => [
-                'name' => __('Open Houses', 'happy-place'),
-                'singular_name' => __('Open House', 'happy-place'),
-                'add_new' => __('Add New', 'happy-place'),
-                'add_new_item' => __('Add New Open House', 'happy-place'),
-                'edit_item' => __('Edit Open House', 'happy-place'),
-                'new_item' => __('New Open House', 'happy-place'),
-                'view_item' => __('View Open House', 'happy-place'),
-                'search_items' => __('Search Open Houses', 'happy-place'),
-                'not_found' => __('No open houses found', 'happy-place'),
-                'not_found_in_trash' => __('No open houses found in Trash', 'happy-place'),
-            ],
-            'public' => true,
-            'show_in_menu' => 'edit.php?post_type=listing',
-            'show_in_rest' => true,
-            'supports' => ['title', 'editor'],
-            'rewrite' => ['slug' => 'open-houses']
-        ]);
-
-        // Transaction post type
-        register_post_type('transaction', [
-            'labels' => [
-                'name' => __('Transactions', 'happy-place'),
-                'singular_name' => __('Transaction', 'happy-place'),
-                'add_new' => __('Add New', 'happy-place'),
-                'add_new_item' => __('Add New Transaction', 'happy-place'),
-                'edit_item' => __('Edit Transaction', 'happy-place'),
-                'new_item' => __('New Transaction', 'happy-place'),
-                'view_item' => __('View Transaction', 'happy-place'),
-                'search_items' => __('Search Transactions', 'happy-place'),
-                'not_found' => __('No transactions found', 'happy-place'),
-                'not_found_in_trash' => __('No transactions found in Trash', 'happy-place'),
-            ],
-            'public' => true,
-            'show_in_menu' => 'edit.php?post_type=listing',
-            'show_in_rest' => true,
-            'supports' => ['title', 'editor'],
-            'rewrite' => ['slug' => 'transactions']
-        ]);
-
-        // Flush rewrite rules on first run
-        if (get_option('hph_flush_rewrite_rules') === 'yes') {
-            flush_rewrite_rules();
-            delete_option('hph_flush_rewrite_rules');
-        }
-    }
-
-    /**
-     * Register taxonomies
-     */
-    public function register_taxonomies(): void {
-        // Property Type taxonomy
-        register_taxonomy('property-type', ['listing'], [
-            'hierarchical' => true,
-            'labels' => [
-                'name' => _x('Property Types', 'taxonomy general name', 'happy-place'),
-                'singular_name' => _x('Property Type', 'taxonomy singular name', 'happy-place'),
-                'search_items' => __('Search Property Types', 'happy-place'),
-                'all_items' => __('All Property Types', 'happy-place'),
-                'parent_item' => __('Parent Property Type', 'happy-place'),
-                'parent_item_colon' => __('Parent Property Type:', 'happy-place'),
-                'edit_item' => __('Edit Property Type', 'happy-place'),
-                'update_item' => __('Update Property Type', 'happy-place'),
-                'add_new_item' => __('Add New Property Type', 'happy-place'),
-                'new_item_name' => __('New Property Type Name', 'happy-place'),
-                'menu_name' => __('Property Types', 'happy-place')
-            ],
-            'show_ui' => true,
-            'show_in_rest' => true,
-            'show_admin_column' => true,
-            'rewrite' => ['slug' => 'property-type']
-        ]);
-
-        // Listing Status taxonomy
-        register_taxonomy('listing-status', ['listing'], [
-            'hierarchical' => true,
-            'labels' => [
-                'name' => _x('Listing Statuses', 'taxonomy general name', 'happy-place'),
-                'singular_name' => _x('Listing Status', 'taxonomy singular name', 'happy-place'),
-                'search_items' => __('Search Listing Statuses', 'happy-place'),
-                'all_items' => __('All Listing Statuses', 'happy-place'),
-                'parent_item' => __('Parent Listing Status', 'happy-place'),
-                'parent_item_colon' => __('Parent Listing Status:', 'happy-place'),
-                'edit_item' => __('Edit Listing Status', 'happy-place'),
-                'update_item' => __('Update Listing Status', 'happy-place'),
-                'add_new_item' => __('Add New Listing Status', 'happy-place'),
-                'new_item_name' => __('New Listing Status Name', 'happy-place'),
-                'menu_name' => __('Listing Statuses', 'happy-place')
-            ],
-            'show_ui' => true,
-            'show_in_rest' => true,
-            'show_admin_column' => true,
-            'rewrite' => ['slug' => 'listing-status']
+            'public'              => true,
+            'has_archive'         => true,
+            'show_in_rest'        => true,
+            'supports'            => ['title', 'editor', 'thumbnail', 'excerpt'],
+            'menu_icon'           => 'dashicons-groups',
+            'rewrite'            => ['slug' => 'teams'],
+            'capability_type'    => 'post',
+            'show_in_nav_menus'  => true,
+            'show_in_admin_bar'  => true,
         ]);
     }
 }

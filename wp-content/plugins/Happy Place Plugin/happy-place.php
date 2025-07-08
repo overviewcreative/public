@@ -152,14 +152,26 @@ class Plugin {
      * Plugin activation routine
      */
     public function activate(): void {
-        // Initialize components to ensure everything is registered
-        $this->init_components();
+        // Ensure core classes are loaded
+        require_once HPH_PLUGIN_DIR . 'includes/core/class-post-types.php';
+        require_once HPH_PLUGIN_DIR . 'includes/core/class-taxonomies.php';
         
-        // Explicitly register post types
-        \HappyPlace\Core\Post_Types::get_instance()->register_post_types();
+        // Register post types
+        $post_types = Core\Post_Types::get_instance();
+        $post_types->register_post_types();
+        
+        // Register taxonomies
+        $taxonomies = Core\Taxonomies::get_instance();
+        $taxonomies->register_taxonomies();
         
         // Set flag to flush rewrite rules
         update_option('hph_flush_rewrite_rules', 'yes');
+        
+        // Create or update database tables
+        if (file_exists(HPH_PLUGIN_DIR . 'includes/core/class-database.php')) {
+            require_once HPH_PLUGIN_DIR . 'includes/core/class-database.php';
+            Core\Database::get_instance()->install();
+        }
     }
 
     /**
