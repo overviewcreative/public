@@ -1,0 +1,64 @@
+/* Open Houses Component */
+.hph-open-houses {
+    padding: 2rem 0;
+}
+
+.hph-open-houses--past {
+    background-color: var(--color-gray-100);
+    margin-top: 2rem;
+}
+
+.hph-open-houses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.hph-open-house-item {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-gray-200);
+}
+
+.hph-open-house-item--past {
+    opacity: 0.8;
+}
+
+.hph-open-house-date {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.hph-open-house-time {
+    font-size: 1rem;
+    color: var(--color-gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.hph-open-house-host {
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+    margin-bottom: 0.5rem;
+}
+
+.hph-open-house-notes {
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-gray-200);
+}
+
+@media (max-width: 768px) {
+    .hph-open-houses-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hph-open-house-item {
+        padding: 1rem;
+    }
+}

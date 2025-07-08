@@ -1,0 +1,111 @@
+/* MLS and Fair Housing Compliance Styles */
+.hph-compliance-footer {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: var(--border-radius);
+}
+
+.hph-mls-logos {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.hph-mls-logo {
+    height: 40px;
+    width: auto;
+}
+
+.hph-fair-housing {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.hph-fair-housing-logo {
+    height: 30px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.hph-fair-housing-notice {
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+    margin: 0;
+}
+
+.hph-mls-disclaimer,
+.hph-copyright-notice {
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Print Button */
+.hph-print-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.hph-print-button:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+}
+
+.hph-print-button:disabled {
+    background-color: var(--color-gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.hph-print-button i {
+    font-size: 1.125rem;
+}
+
+/* Required Field Indicators */
+.hph-required-field::after {
+    content: '*';
+    color: var(--color-red-500);
+    margin-left: 4px;
+}
+
+/* Compliance Validation Messages */
+.hph-validation-error {
+    color: var(--color-red-500);
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+/* Print Styles */
+@media print {
+    .hph-compliance-footer {
+        margin-top: 20px;
+        padding: 10px;
+        page-break-inside: avoid;
+    }
+
+    .hph-print-button {
+        display: none;
+    }
+}

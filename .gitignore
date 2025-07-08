@@ -1,0 +1,129 @@
+# WordPress core files
+/wp-admin/
+/wp-includes/
+/wp-content/languages/
+/wp-content/upgrade/
+/wp-content/uploads/
+/wp-content/advanced-cache.php
+/wp-content/backup-db/
+/wp-content/backups/
+/wp-content/blogs.dir/
+/wp-content/cache/
+/wp-content/db.php
+/wp-content/debug.log
+/wp-content/mu-plugins/
+/wp-content/object-cache.php
+/wp-content/upgrade/
+/wp-content/wp-cache-config.php
+/wp-content/plugins/hello.php
+
+# WordPress configuration
+wp-config.php
+wp-config-local.php
+wp-config-staging.php
+wp-config-production.php
+.htaccess
+
+# Core WordPress files
+/index.php
+/license.txt
+/readme.html
+/wp-activate.php
+/wp-blog-header.php
+/wp-comments-post.php
+/wp-cron.php
+/wp-links-opml.php
+/wp-load.php
+/wp-login.php
+/wp-mail.php
+/wp-settings.php
+/wp-signup.php
+/wp-trackback.php
+/xmlrpc.php
+
+# Node dependency directories
+node_modules/
+jspm_packages/
+
+# Local development files
+/wp-content/debug.log
+*.log
+*.sql
+*.sqlite
+*.bak
+*.swp
+*.zip
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE/Editor folders
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.komodoproject
+.komodotools/
+.project
+.settings/
+.buildpath
+nbproject/
+
+# Local development environment
+/phpmyadmin/
+/sql/
+.env
+.env.*
+!.env.example
+
+# Package managers
+/vendor/
+composer.phar
+composer.lock
+package-lock.json
+yarn.lock
+
+# Cache and temporary files
+.tmp/
+.temp/
+.cache/
+.sass-cache/
+*.css.map
+*.js.map
+
+# Exclude these files if you're using Local by Flywheel
+/local-adminer-*.php
+/local-xdebuginfo.php
+
+# Dependency directories
+bower_components/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Exclude plugin/theme development files that shouldn't be in production
+/wp-content/themes/*/node_modules/
+/wp-content/themes/*/vendor/
+/wp-content/plugins/*/node_modules/
+/wp-content/plugins/*/vendor/
+
+# But keep all custom plugins and themes
+!/wp-content/plugins/
+!/wp-content/themes/
+
+# Ignore all themes except your custom ones (add your theme names)
+/wp-content/themes/*
+!/wp-content/themes/your-custom-theme/
+
+# Ignore all plugins except your custom ones (add your plugin names)
+/wp-content/plugins/*
+!/wp-content/plugins/Happy Place Plugin/

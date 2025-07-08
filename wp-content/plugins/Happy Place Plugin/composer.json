@@ -1,0 +1,19 @@
+{
+    "name": "happy-place/real-estate-plugin",
+    "description": "Comprehensive Real Estate Management Platform",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "dompdf/dompdf": "^2.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HappyPlace\\": "includes/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

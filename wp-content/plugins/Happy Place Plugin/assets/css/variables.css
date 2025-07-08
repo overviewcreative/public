@@ -1,0 +1,33 @@
+/* Happy Place Variables - Design System */
+:root {
+    /* Colors */
+    --hph-primary: #0ea5e9;
+    --hph-gray-50: #f9fafb;
+    --hph-gray-100: #f3f4f6;
+    --hph-gray-200: #e5e7eb;
+    --hph-gray-300: #d1d5db;
+    --hph-gray-400: #9ca3af;
+    --hph-gray-500: #6b7280;
+    --hph-gray-600: #4b5563;
+    --hph-gray-700: #374151;
+    --hph-gray-800: #1f2937;
+    --hph-gray-900: #111827;
+    
+    --hph-blue-50: #eff6ff;
+    --hph-blue-700: #1d4ed8;
+
+    /* Semantic Colors */
+    --hph-gray-bg: var(--hph-gray-50);
+    --hph-text-dark: var(--hph-gray-900);
+    --hph-text-light: var(--hph-gray-600);
+
+    /* Shadows */
+    --hph-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --hph-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --hph-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+    /* Border Radius */
+    --hph-border-radius-sm: 0.25rem;
+    --hph-border-radius-md: 0.5rem;
+    --hph-border-radius-lg: 0.75rem;
+}
