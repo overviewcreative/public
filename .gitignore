@@ -120,10 +120,10 @@ bower_components/
 !/wp-content/plugins/
 !/wp-content/themes/
 
-# Ignore all themes except your custom ones (add your theme names)
+# Ignore all themes except your custom ones
 /wp-content/themes/*
-!/wp-content/themes/your-custom-theme/
+!/wp-content/themes/happy-place/
 
-# Ignore all plugins except your custom ones (add your plugin names)
+# Ignore all plugins except your custom ones
 /wp-content/plugins/*
 !/wp-content/plugins/Happy Place Plugin/
