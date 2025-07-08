@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Happy Place Real Estate Platform
- * Description: Comprehensive real estate management solution for WordPress
+ * Description: Comprehensive real estate management solution with API integrations
  * Version: 1.0.0
  * Author: Happy Place Team
  * Text Domain: happy-place
@@ -24,158 +24,198 @@ define('HPH_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('HPH_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('HPH_PLUGIN_FILE', __FILE__);
 
-// Autoloader for plugin classes
+/**
+ * Fixed autoloader with direct class mapping
+ */
 spl_autoload_register(function($class) {
-    // Only autoload our plugin classes
-    if (strpos($class, 'HappyPlace\\') === 0) {
-        // Convert namespace to path and add class- prefix for classes
-        $path = substr($class, strlen('HappyPlace\\'));
-        $parts = explode('\\', $path);
-        $className = array_pop($parts);
-        
-        // Convert class name to kebab case with class- prefix
-        $fileName = 'class-' . strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $className));
-        
-        // Build the final path
-        $path = strtolower(implode(DIRECTORY_SEPARATOR, $parts));
-        if ($path) {
-            $path .= DIRECTORY_SEPARATOR;
+    // Only handle our namespace
+    if (strpos($class, 'HappyPlace\\') !== 0) {
+        return;
+    }
+
+    // Map of class names to actual file paths
+    $class_map = [
+        'HappyPlace\\Core\\Post_Types' => 'includes/core/class-post-types.php',
+        'HappyPlace\\Core\\Taxonomies' => 'includes/core/class-taxonomies.php',
+        'HappyPlace\\Fields\\ACF_Field_Groups' => 'includes/fields/class-acf-field-groups.php',
+        'HappyPlace\\Compliance' => 'includes/class-compliance.php',
+        'HappyPlace\\Core\\Database' => 'includes/class-database.php',
+        'HappyPlace\\Integrations\\Integrations_Manager' => 'includes/integrations/class-integrations-manager.php',
+        'HappyPlace\\Admin\\API_Settings' => 'includes/admin/class-api-settings.php',
+        'HappyPlace\\Admin\\Admin_Menu' => 'includes/admin/class-admin-menu.php',
+        'HappyPlace\\Utilities\\PDF_Generator' => 'includes/utilities/class-pdf-generator.php',
+    ];
+
+    // Check if we have a direct mapping
+    if (isset($class_map[$class])) {
+        $file_path = HPH_PLUGIN_DIR . $class_map[$class];
+        if (file_exists($file_path)) {
+            require_once $file_path;
+            return;
         }
-        
-        $file = HPH_PLUGIN_DIR . 'includes/' . $path . $fileName . '.php';
-        
-        if (file_exists($file)) {
-            require_once $file;
-        }
+    }
+
+    // Fallback: try to construct path automatically
+    $class_name = substr($class, strlen('HappyPlace\\'));
+    $class_path = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
+    $path_parts = explode(DIRECTORY_SEPARATOR, $class_path);
+    $file_name = array_pop($path_parts);
+    
+    // Convert PascalCase to kebab-case
+    $file_name = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $file_name));
+    $file_name = 'class-' . $file_name . '.php';
+    
+    $directory = !empty($path_parts) ? strtolower(implode(DIRECTORY_SEPARATOR, $path_parts)) . DIRECTORY_SEPARATOR : '';
+    $file_path = HPH_PLUGIN_DIR . 'includes' . DIRECTORY_SEPARATOR . $directory . $file_name;
+    
+    if (file_exists($file_path)) {
+        require_once $file_path;
     }
 });
 
+/**
+ * Main Plugin Class
+ */
 class Plugin {
     private static ?self $instance = null;
-
-    // Plugin components
-    private array $components = [
-        'post_types'     => 'Core\Post_Types',
-        'taxonomies'     => 'Core\Taxonomies',
-        'field_groups'   => 'Fields\Acf_Field_Groups',
-        'form_handler'   => 'Forms\Form_Handler',
-        'property'       => 'Post_Types\Property',
-        'compliance'     => 'Compliance',
-        'database'       => 'Core\Database'
-    ];
 
     public static function get_instance(): self {
         return self::$instance ??= new self();
     }
 
     private function __construct() {
-        $this->setup_hooks();
-    }
-
-    /**
-     * Initialize plugin components
-     */
-    public function init_components(): void {
-        foreach ($this->components as $name => $class) {
-            $full_class = __NAMESPACE__ . $class;
-            if (class_exists($full_class)) {
-                $full_class::get_instance();
-            }
-        }
-    }
-
-    /**
-     * Set up plugin-wide hooks
-     */
-    private function setup_hooks(): void {
-        // Core WordPress hooks
-        add_action('plugins_loaded', [$this, 'load_textdomain']);
-        add_action('init', [$this, 'init_components'], 0);
-        add_action('init', [$this, 'maybe_flush_rewrite_rules'], 20);
-        add_action('admin_notices', [$this, 'check_dependencies']);
-        
-        // Plugin activation/deactivation hooks
+        add_action('plugins_loaded', [$this, 'init'], 0);
         register_activation_hook(__FILE__, [$this, 'activate']);
         register_deactivation_hook(__FILE__, [$this, 'deactivate']);
     }
 
     /**
-     * Load plugin text domain
+     * Initialize plugin components
      */
-    public function load_textdomain(): void {
+    public function init(): void {
+        // Load text domain
         load_plugin_textdomain(
             'happy-place', 
             false, 
             dirname(plugin_basename(__FILE__)) . '/languages/'
         );
+
+        // Initialize core components
+        $this->init_core_components();
+        $this->init_admin_components();
+        $this->init_integrations();
+        
+        // Schedule rewrite flush if needed
+        add_action('init', [$this, 'maybe_flush_rewrite_rules'], 999);
     }
 
     /**
-     * Check plugin dependencies
+     * Initialize core components
      */
-    public function check_dependencies(): void {
-        // Check for required plugins
-        $required_plugins = [
-            'advanced-custom-fields-pro/acf.php' => 'Advanced Custom Fields PRO'
-        ];
-
-        if (!function_exists('is_plugin_active')) {
-            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    private function init_core_components(): void {
+        // Post Types
+        if (class_exists('HappyPlace\\Core\\Post_Types')) {
+            Core\Post_Types::get_instance();
         }
 
-        foreach ($required_plugins as $plugin => $name) {
-            if (!is_plugin_active($plugin)) {
-                $this->show_dependency_notice($name);
-            }
+        // Taxonomies
+        if (class_exists('HappyPlace\\Core\\Taxonomies')) {
+            Core\Taxonomies::get_instance();
+        }
+
+        // ACF Field Groups
+        if (class_exists('HappyPlace\\Fields\\ACF_Field_Groups')) {
+            Fields\ACF_Field_Groups::get_instance();
+        }
+
+        // Compliance
+        if (class_exists('HappyPlace\\Compliance')) {
+            Compliance::get_instance();
+        }
+
+        // Database
+        if (class_exists('HappyPlace\\Core\\Database')) {
+            Core\Database::get_instance();
         }
     }
 
     /**
-     * Display dependency notice
+     * Initialize admin components
      */
-    private function show_dependency_notice(string $plugin_name): void {
-        ?>
-        <div class="notice notice-error">
-            <p>
-                <?php 
-                printf(
-                    __('%s is required for the Happy Place Real Estate Platform to function properly.', 'happy-place'), 
-                    '<strong>' . esc_html($plugin_name) . '</strong>'
-                ); 
-                ?>
-            </p>
-        </div>
-        <?php
+    private function init_admin_components(): void {
+        if (!is_admin()) {
+            return;
+        }
+
+        // Admin Menu
+        if (class_exists('HappyPlace\\Admin\\Admin_Menu')) {
+            Admin\Admin_Menu::get_instance();
+        }
+
+        // API Settings
+        if (class_exists('HappyPlace\\Admin\\API_Settings')) {
+            Admin\API_Settings::get_instance();
+        }
     }
 
     /**
-     * Plugin activation routine
+     * Initialize integrations
+     */
+    private function init_integrations(): void {
+        // Integrations Manager
+        if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
+            Integrations\Integrations_Manager::get_instance();
+        }
+
+        // PDF Generator
+        if (class_exists('HappyPlace\\Utilities\\PDF_Generator')) {
+            Utilities\PDF_Generator::get_instance();
+        }
+    }
+
+    /**
+     * Plugin activation
      */
     public function activate(): void {
-        // Ensure core classes are loaded
-        require_once HPH_PLUGIN_DIR . 'includes/core/class-post-types.php';
-        require_once HPH_PLUGIN_DIR . 'includes/core/class-taxonomies.php';
+        // Force load components during activation
+        $this->init_core_components();
         
-        // Register post types
-        $post_types = Core\Post_Types::get_instance();
-        $post_types->register_post_types();
-        
-        // Register taxonomies
-        $taxonomies = Core\Taxonomies::get_instance();
-        $taxonomies->register_taxonomies();
+        // Create database tables
+        if (class_exists('HappyPlace\\Core\\Database')) {
+            Core\Database::get_instance()->install();
+        }
         
         // Set flag to flush rewrite rules
         update_option('hph_flush_rewrite_rules', 'yes');
         
-        // Create or update database tables
-        if (file_exists(HPH_PLUGIN_DIR . 'includes/core/class-database.php')) {
-            require_once HPH_PLUGIN_DIR . 'includes/core/class-database.php';
-            Core\Database::get_instance()->install();
+        // Set default API settings
+        $default_api_settings = [
+            'followupboss_default_source' => 'Website',
+            'mailchimp_server_prefix' => 'us1'
+        ];
+        
+        $existing_settings = get_option('hph_api_credentials', []);
+        foreach ($default_api_settings as $key => $value) {
+            if (!isset($existing_settings[$key])) {
+                $existing_settings[$key] = $value;
+            }
+        }
+        update_option('hph_api_credentials', $existing_settings);
+        
+        // Set default sync settings
+        $default_sync_settings = [
+            'airtable_frequency' => 'daily',
+            'followupboss_frequency' => 'daily',
+            'google_places_frequency' => 'weekly'
+        ];
+        
+        if (!get_option('hph_sync_settings')) {
+            update_option('hph_sync_settings', $default_sync_settings);
         }
     }
 
     /**
-     * Hook into init to flush rewrite rules if needed
+     * Maybe flush rewrite rules
      */
     public function maybe_flush_rewrite_rules(): void {
         if (get_option('hph_flush_rewrite_rules') === 'yes') {
@@ -185,13 +225,49 @@ class Plugin {
     }
 
     /**
-     * Plugin deactivation routine
+     * Plugin deactivation
      */
     public function deactivate(): void {
-        // Clean up
+        // Clear scheduled hooks
+        wp_clear_scheduled_hook('hph_sync_airtable');
+        wp_clear_scheduled_hook('hph_sync_followupboss');
+        wp_clear_scheduled_hook('hph_sync_google_places');
+        
         flush_rewrite_rules();
     }
 }
 
 // Initialize the plugin
 Plugin::get_instance();
+
+// Add some helper functions for easy access to integrations
+function hph_geocode_address(string $address): ?array {
+    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
+        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->geocode_address($address);
+    }
+    return null;
+}
+
+function hph_create_followupboss_lead(array $lead_data): bool {
+    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
+        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->create_followupboss_lead($lead_data);
+    }
+    return false;
+}
+
+function hph_add_mailchimp_subscriber(string $email, string $first_name = '', string $last_name = '', array $merge_fields = []): bool {
+    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
+        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->add_mailchimp_subscriber($email, $first_name, $last_name, $merge_fields);
+    }
+    return false;
+}
+
+function hph_get_place_details(string $place_id): ?array {
+    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
+        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->get_place_details($place_id);
+    }
+    return null;
+}
+
+// Add immediate debug to see if this file is being loaded
+error_log('HPH: Main plugin file loaded with integrations');

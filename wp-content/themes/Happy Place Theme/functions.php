@@ -57,11 +57,12 @@ class HPH_Theme {
         // Custom post type support
         add_theme_support('post-type-listing');
         add_theme_support('post-type-agent');
-        add_theme_support('post-type-openhouse');
+        add_theme_support('post-type-open-house');    
+        add_theme_support('post-type-local-place');   
         add_theme_support('post-type-transaction');
         add_theme_support('post-type-community');
         add_theme_support('post-type-city');
-        add_theme_support('post-type-place');
+        add_theme_support('post-type-team');
     }
 
     public function register_image_sizes(): void {
@@ -78,8 +79,15 @@ class HPH_Theme {
         add_image_size('community-hero', 1600, 600, true);
         add_image_size('city-thumb', 480, 320, true);
         add_image_size('city-hero', 1600, 600, true);
-        add_image_size('place-thumb', 480, 320, true);
-        add_image_size('place-feature', 800, 600, true);
+        
+        // Local places sizes
+        add_image_size('place-thumb', 320, 240, true);     
+        add_image_size('place-feature', 800, 600, true);   
+        add_image_size('place-map-marker', 64, 64, true);  
+        
+        // Open house sizes
+        add_image_size('open-house-thumb', 480, 320, true); 
+        add_image_size('open-house-gallery', 800, 600, true); 
     }
 
     private function register_assets(): void {

@@ -28,7 +28,9 @@ class ACF_Field_Groups {
         'community_details' => 'group_community_details.json',
         'city_details' => 'group_city_details.json',
         'transaction_details' => 'group_transaction_details.json',
-        'client_details' => 'group_client_details.json'
+        'client_details' => 'group_client_details.json',
+        'open_house_details' => 'group_open_house_details.json',    
+        'local_place_details' => 'group_local_place_details.json'  
     ];
 
     public static function get_instance(): self {
@@ -90,6 +92,12 @@ class ACF_Field_Groups {
 
         // Agent Contact Validation
         add_filter('acf/validate_value/name=email', [$this, 'validate_agent_email'], 10, 4);
+
+        // Open House Date Validation
+        add_filter('acf/validate_value/name=open_house_date', [$this, 'validate_open_house_date'], 10, 4);
+
+        // Google Places ID Validation
+        add_filter('acf/validate_value/name=google_place_id', [$this, 'validate_google_place_id'], 10, 4);
     }
 
     /**
@@ -110,6 +118,28 @@ class ACF_Field_Groups {
         // Specific email validation for agents
         if (!is_email($value)) {
             $valid = 'Please enter a valid professional email address.';
+        }
+        return $valid;
+    }
+
+    /**
+     * Validate open house date
+     */
+    public function validate_open_house_date($valid, $value, $field, $input) {
+        // Ensure open house date is not in the past
+        if (strtotime($value) < strtotime('today')) {
+            $valid = 'Open house date cannot be in the past.';
+        }
+        return $valid;
+    }
+
+    /**
+     * Validate Google Place ID format
+     */
+    public function validate_google_place_id($valid, $value, $field, $input) {
+        // Basic Google Place ID format validation
+        if (!empty($value) && !preg_match('/^[A-Za-z0-9_-]+$/', $value)) {
+            $valid = 'Invalid Google Place ID format.';
         }
         return $valid;
     }
