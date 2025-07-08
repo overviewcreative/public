@@ -1,9 +1,11 @@
 <?php
-namespace HappyPlace;
+namespace HappyPlace\Core;
+
 /**
  * Database Tables Setup
  *
  * @package HappyPlace
+ * @subpackage Core
  */
 
 if (!defined('ABSPATH')) {
@@ -11,19 +13,32 @@ if (!defined('ABSPATH')) {
 }
 
 class Database {
+    private static ?self $instance = null;
+
+    /**
+     * Get singleton instance
+     */
+    public static function get_instance(): self {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
     /**
      * Constructor
      */
-    public function __construct() {
-        add_action('init', array($this, 'check_version'));
-        register_activation_hook(HP_PLUGIN_FILE, array($this, 'install'));
+    private function __construct() {
+        add_action('init', [$this, 'check_version']);
+        // Reference global constant with leading backslash
+        register_activation_hook(\HPH_PLUGIN_FILE, [$this, 'install']);
     }
 
     /**
      * Check database version and update if necessary
      */
-    public function check_version() {
-        if (get_option('hph_db_version') !== HP_VERSION) {
+    public function check_version(): void {
+        if (get_option('hph_db_version') !== \HPH_VERSION) {
             $this->install();
         }
     }
@@ -31,7 +46,7 @@ class Database {
     /**
      * Install database tables
      */
-    public function install() {
+    public function install(): void {
         global $wpdb;
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
@@ -144,6 +159,6 @@ class Database {
         dbDelta($sql_reports);
 
         // Save database version
-        update_option('hph_db_version', HP_VERSION);
+        update_option('hph_db_version', \HPH_VERSION);
     }
 }

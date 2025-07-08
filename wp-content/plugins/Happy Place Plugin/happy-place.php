@@ -22,6 +22,7 @@ if (!defined('ABSPATH')) {
 define('HPH_VERSION', '1.0.0');
 define('HPH_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('HPH_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('HPH_PLUGIN_FILE', __FILE__);
 
 // Autoloader for plugin classes
 spl_autoload_register(function($class) {
@@ -59,7 +60,8 @@ class Plugin {
         'field_groups'   => 'Fields\Acf_Field_Groups',
         'form_handler'   => 'Forms\Form_Handler',
         'property'       => 'Post_Types\Property',
-        'compliance'     => 'Compliance'
+        'compliance'     => 'Compliance',
+        'database'       => 'Core\Database'
     ];
 
     public static function get_instance(): self {
