@@ -1,4 +1,5 @@
 <?php
+namespace HappyPlace;
 /**
  * Database Tables Setup
  *
@@ -8,8 +9,6 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-
-namespace HappyPlace;
 
 class Database {
     /**

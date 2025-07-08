@@ -53,12 +53,13 @@ class Plugin {
     private static ?self $instance = null;
 
     // Plugin components
-    private $components = [
-        'post_types'     => '\Core\PostTypes',
-        'taxonomies'     => '\Core\Taxonomies',
-        'field_groups'   => '\Fields\AcfFieldGroups',
-        'form_handler'   => '\Forms\FormHandler',
-        'property'       => '\PostTypes\Property'
+    private array $components = [
+        'post_types'     => 'Core\Post_Types',
+        'taxonomies'     => 'Core\Taxonomies',
+        'field_groups'   => 'Fields\Acf_Field_Groups',
+        'form_handler'   => 'Forms\Form_Handler',
+        'property'       => 'Post_Types\Property',
+        'compliance'     => 'Compliance'
     ];
 
     public static function get_instance(): self {
@@ -153,7 +154,7 @@ class Plugin {
         $this->init_components();
         
         // Explicitly register post types
-        \HappyPlace\Core\PostTypes::get_instance()->register_post_types();
+        \HappyPlace\Core\Post_Types::get_instance()->register_post_types();
         
         // Set flag to flush rewrite rules
         update_option('hph_flush_rewrite_rules', 'yes');

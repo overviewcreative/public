@@ -1,5 +1,5 @@
 <?php
-namespace HappyPlace\PostTypes;
+namespace HappyPlace\Post_Types;
 
 /**
  * Property Model Class
