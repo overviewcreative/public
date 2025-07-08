@@ -100,3 +100,4 @@ trait MLS_Compliance {
         // Photo quality requirements
         return $errors;
     }
+}

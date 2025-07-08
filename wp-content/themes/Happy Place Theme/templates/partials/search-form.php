@@ -15,94 +15,118 @@ $property_type = isset($_GET['property_type']) ? sanitize_text_field($_GET['prop
 $location = isset($_GET['location']) ? sanitize_text_field($_GET['location']) : '';
 ?>
 
-<form role="search" method="get" class="property-search-form" action="<?php echo esc_url(home_url('/')); ?>">
+<form role="search" method="get" class="hph-search-form hph-card hph-p-6" action="<?php echo esc_url(home_url('/')); ?>">
     <input type="hidden" name="post_type" value="listing">
     
-    <div class="search-fields">
-        <div class="search-field">
-            <label for="location" class="screen-reader-text">Location</label>
-            <input type="text" id="location" name="location" value="<?php echo esc_attr($location); ?>" placeholder="City, State, or ZIP" autocomplete="off">
+    <div class="hph-grid hph-gap-4 md:hph-grid-cols-2 lg:hph-grid-cols-4">
+        <div class="hph-form-group">
+            <label for="location" class="hph-form-label"><?php esc_html_e('Location', 'happy-place'); ?></label>
+            <div class="hph-input-group">
+                <span class="hph-input-group-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </span>
+                <input type="text" 
+                       id="location" 
+                       name="location" 
+                       value="<?php echo esc_attr($location); ?>" 
+                       placeholder="<?php esc_attr_e('City, State, or ZIP', 'happy-place'); ?>" 
+                       class="hph-form-input" 
+                       autocomplete="off">
+            </div>
         </div>
 
-        <div class="search-field search-field--price">
-            <label for="min_price" class="screen-reader-text">Minimum Price</label>
-            <input type="number" id="min_price" name="min_price" value="<?php echo esc_attr($min_price); ?>" placeholder="Min Price">
-            
-            <label for="max_price" class="screen-reader-text">Maximum Price</label>
-            <input type="number" id="max_price" name="max_price" value="<?php echo esc_attr($max_price); ?>" placeholder="Max Price">
+        <div class="hph-form-group">
+            <label class="hph-form-label"><?php esc_html_e('Price Range', 'happy-place'); ?></label>
+            <div class="hph-grid hph-grid-cols-2 hph-gap-2">
+                <div class="hph-input-group">
+                    <span class="hph-input-group-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </span>
+                    <input type="number" 
+                           id="min_price" 
+                           name="min_price" 
+                           value="<?php echo esc_attr($min_price); ?>" 
+                           placeholder="<?php esc_attr_e('Min', 'happy-place'); ?>" 
+                           class="hph-form-input">
+                </div>
+                <div class="hph-input-group">
+                    <span class="hph-input-group-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </span>
+                    <input type="number" 
+                           id="max_price" 
+                           name="max_price" 
+                           value="<?php echo esc_attr($max_price); ?>" 
+                           placeholder="<?php esc_attr_e('Max', 'happy-place'); ?>" 
+                           class="hph-form-input">
+                </div>
+            </div>
         </div>
 
-        <div class="search-field">
-            <label for="beds" class="screen-reader-text">Bedrooms</label>
-            <select id="beds" name="beds">
-                <option value="">Any Beds</option>
-                <?php for ($i = 1; $i <= 5; $i++) : ?>
-                    <option value="<?php echo $i; ?>" <?php selected($beds, $i); ?>>
-                        <?php echo $i . '+' . _n(' Bed', ' Beds', $i, 'happy-place'); ?>
-                    </option>
-                <?php endfor; ?>
-            </select>
-        </div>
-
-        <div class="search-field">
-            <label for="baths" class="screen-reader-text">Bathrooms</label>
-            <select id="baths" name="baths">
-                <option value="">Any Baths</option>
-                <?php for ($i = 1; $i <= 5; $i++) : ?>
-                    <option value="<?php echo $i; ?>" <?php selected($baths, $i); ?>>
-                        <?php echo $i . '+' . _n(' Bath', ' Baths', $i, 'happy-place'); ?>
-                    </option>
-                <?php endfor; ?>
-            </select>
-        </div>
-
-        <div class="search-field">
-            <label for="property_type" class="screen-reader-text">Property Type</label>
-            <select id="property_type" name="property_type">
-                <option value="">Any Type</option>
-                <?php
-                $property_types = get_terms(array(
-                    'taxonomy' => 'property_type',
-                    'hide_empty' => true
-                ));
-
-                if (!is_wp_error($property_types)) :
-                    foreach ($property_types as $type) :
-                        ?>
-                        <option value="<?php echo esc_attr($type->slug); ?>" <?php selected($property_type, $type->slug); ?>>
-                            <?php echo esc_html($type->name); ?>
+        <div class="hph-form-group">
+            <label for="beds" class="hph-form-label"><?php esc_html_e('Bedrooms', 'happy-place'); ?></label>
+            <div class="hph-input-group">
+                <span class="hph-input-group-icon">
+                    <i class="fas fa-bed"></i>
+                </span>
+                <select id="beds" name="beds" class="hph-form-select">
+                    <option value=""><?php esc_html_e('Any Beds', 'happy-place'); ?></option>
+                    <?php for ($i = 1; $i <= 5; $i++) : ?>
+                        <option value="<?php echo $i; ?>" <?php selected($beds, $i); ?>>
+                            <?php echo $i . '+' . _n(' Bed', ' Beds', $i, 'happy-place'); ?>
                         </option>
-                        <?php
-                    endforeach;
-                endif;
-                ?>
-            </select>
+                    <?php endfor; ?>
+                </select>
+            </div>
         </div>
 
-        <div class="search-field search-field--submit">
-            <button type="submit" class="search-submit">
-                <span class="screen-reader-text">Search</span>
-                <i class="fas fa-search"></i>
-            </button>
+        <div class="hph-form-group">
+            <label for="baths" class="hph-form-label"><?php esc_html_e('Bathrooms', 'happy-place'); ?></label>
+            <div class="hph-input-group">
+                <span class="hph-input-group-icon">
+                    <i class="fas fa-bath"></i>
+                </span>
+                <select id="baths" name="baths" class="hph-form-select">
+                    <option value=""><?php esc_html_e('Any Baths', 'happy-place'); ?></option>
+                    <?php for ($i = 1; $i <= 5; $i++) : ?>
+                        <option value="<?php echo $i; ?>" <?php selected($baths, $i); ?>>
+                            <?php echo $i . '+' . _n(' Bath', ' Baths', $i, 'happy-place'); ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+        </div>
+
+        <div class="hph-form-group lg:hph-col-span-4">
+            <label for="property_type" class="hph-form-label"><?php esc_html_e('Property Type', 'happy-place'); ?></label>
+            <div class="hph-input-group">
+                <span class="hph-input-group-icon">
+                    <i class="fas fa-home"></i>
+                </span>
+                <select id="property_type" name="property_type" class="hph-form-select">
+                    <option value=""><?php esc_html_e('Any Type', 'happy-place'); ?></option>
+                    <?php 
+                    $types = get_terms([
+                        'taxonomy' => 'property_type',
+                        'hide_empty' => false,
+                    ]);
+                    if (!is_wp_error($types)) :
+                        foreach ($types as $type) : ?>
+                            <option value="<?php echo esc_attr($type->slug); ?>" <?php selected($property_type, $type->slug); ?>>
+                                <?php echo esc_html($type->name); ?>
+                            </option>
+                        <?php endforeach;
+                    endif; ?>
+                </select>
+            </div>
         </div>
     </div>
 
-    <div class="search-advanced">
-        <button type="button" class="search-advanced__toggle">
-            Advanced Search
-            <i class="fas fa-chevron-down"></i>
+    <div class="hph-form-actions hph-mt-6 hph-text-center">
+        <button type="submit" class="hph-btn hph-btn--primary hph-w-full md:hph-w-auto">
+            <i class="fas fa-search hph-mr-2"></i>
+            <?php esc_html_e('Search Properties', 'happy-place'); ?>
         </button>
-
-        <div class="search-advanced__content" style="display: none;">
-            <?php
-            // Add additional search fields like:
-            // - Square footage range
-            // - Year built range
-            // - Lot size range
-            // - Features/amenities checkboxes
-            // - Community/subdivision search
-            ?>
-        </div>
     </div>
 </form>
 

@@ -13,226 +13,183 @@ if (!defined('ABSPATH')) {
 }
 
 get_header();
+
+// Get filter values
+$price_min = isset($_GET['price_min']) ? intval($_GET['price_min']) : '';
+$price_max = isset($_GET['price_max']) ? intval($_GET['price_max']) : '';
+$bedrooms = isset($_GET['bedrooms']) ? intval($_GET['bedrooms']) : '';
+$bathrooms = isset($_GET['bathrooms']) ? intval($_GET['bathrooms']) : '';
+$property_type = isset($_GET['property_type']) ? sanitize_text_field($_GET['property_type']) : '';
 ?>
-<div class="hph-listings-archive-container">
-    <div class="hph-search-section">
-        <div class="hph-search-header">
-            <h1>Find Your Perfect Property</h1>
-            <div class="hph-view-modes">
-                <button class="hph-view-toggle active" data-view="grid">
-                    <i class="icon-grid"></i>
-                </button>
-                <button class="hph-view-toggle" data-view="map">
-                    <i class="icon-map"></i>
-                </button>
-                <button class="hph-view-toggle" data-view="split">
-                    <i class="icon-split"></i>
-                </button>
-            </div>
-        </div>
 
-        <form class="hph-search-form" id="listings-search-form">
-            <div class="hph-search-input-group">
-                <input 
-                    type="text" 
-                    id="location-search" 
-                    class="hph-form-input" 
-                    placeholder="Search by address, neighborhood, or MLS#"
-                    value="<?php echo esc_attr(get_query_var('search')); ?>"
-                    autocomplete="off"
-                >
-                <div id="location-suggestions" class="hph-autocomplete-suggestions"></div>
-            </div>
+<div class="hph-container">
+    <div class="hph-listings-archive">
+        <div class="hph-search-section">
+            <header class="hph-archive-header">
+                <h1><?php _e('Find Your Perfect Property', 'happy-place'); ?></h1>
+                <p class="hph-archive-description">
+                    <?php _e('Browse our selection of properties or use filters to narrow down your search.', 'happy-place'); ?>
+                </p>
+            </header>
 
-            <div class="hph-filter-chips">
-                <div class="hph-filter-group">
-                    <h4>Price Range</h4>
-                    <div class="hph-chip-container">
-                        <?php
-                        $price_range = get_query_var('price_range', 'any');
-                        $price_ranges = array(
-                            'any' => 'Any',
-                            'under-500k' => 'Under $500K',
-                            '500k-800k' => '$500K - $800K',
-                            '800k-1m' => '$800K - $1M',
-                            'over-1m' => 'Over $1M'
-                        );
-                        foreach ($price_ranges as $value => $label) :
-                        ?>
-                            <button class="hph-filter-chip <?php echo $price_range === $value ? 'active' : ''; ?>" 
-                                    data-filter="price" 
-                                    data-value="<?php echo esc_attr($value); ?>">
-                                <?php echo esc_html($label); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="hph-filter-group">
-                    <h4>Bedrooms</h4>
-                    <div class="hph-chip-container">
-                        <?php
-                        $bedrooms = get_query_var('bedrooms', 'any');
-                        $bedroom_options = array(
-                            'any' => 'Any',
-                            '1' => '1+',
-                            '2' => '2+',
-                            '3' => '3+',
-                            '4' => '4+'
-                        );
-                        foreach ($bedroom_options as $value => $label) :
-                        ?>
-                            <button class="hph-filter-chip <?php echo $bedrooms === $value ? 'active' : ''; ?>" 
-                                    data-filter="bedrooms" 
-                                    data-value="<?php echo esc_attr($value); ?>">
-                                <?php echo esc_html($label); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="hph-filter-group">
-                    <h4>Property Type</h4>
-                    <div class="hph-chip-container">
-                        <?php
-                        $property_type = get_query_var('property_type', 'all');
-                        $property_types = array(
-                            'all' => 'All Types',
-                            'single-family' => 'Single Family',
-                            'townhouse' => 'Townhouse',
-                            'condo' => 'Condo'
-                        );
-                        foreach ($property_types as $value => $label) :
-                        ?>
-                            <button class="hph-filter-chip <?php echo $property_type === $value ? 'active' : ''; ?>" 
-                                    data-filter="property-type" 
-                                    data-value="<?php echo esc_attr($value); ?>">
-                                <?php echo esc_html($label); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="hph-filter-group">
-                    <h4>Features</h4>
-                    <div class="hph-chip-container">
-                        <?php
-                        $selected_features = (array) get_query_var('features', array());
-                        $features = array(
-                            'pool' => 'Pool',
-                            'garage' => 'Garage',
-                            'fireplace' => 'Fireplace',
-                            'waterfront' => 'Waterfront'
-                        );
-                        foreach ($features as $value => $label) :
-                        ?>
-                            <button class="hph-filter-chip <?php echo in_array($value, $selected_features) ? 'active' : ''; ?>" 
-                                    data-filter="features" 
-                                    data-value="<?php echo esc_attr($value); ?>">
-                                <?php echo esc_html($label); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hph-search-actions">
-                <button type="submit" class="hph-btn hph-btn-primary">Search</button>
-                <button type="reset" class="hph-btn hph-btn-secondary">Reset Filters</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="hph-listings-display">
-        <div class="hph-results-header">
-            <div class="hph-results-count">
-                <span id="total-properties"><?php echo $wp_query->found_posts; ?></span> Properties Found
-            </div>
-            <div class="hph-sort-options">
-                <?php
-                $sort = get_query_var('sort', 'newest');
-                ?>
-                <select id="sort-listings">
-                    <option value="newest" <?php selected($sort, 'newest'); ?>>Newest Listings</option>
-                    <option value="price-low" <?php selected($sort, 'price-low'); ?>>Price: Low to High</option>
-                    <option value="price-high" <?php selected($sort, 'price-high'); ?>>Price: High to Low</option>
-                    <option value="largest" <?php selected($sort, 'largest'); ?>>Largest</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="listings-container" class="hph-listings-container hph-grid-view">
-            <?php if (have_posts()) : while (have_posts()) : the_post(); 
-                $price = get_field('price');
-                $beds = get_field('bedrooms');
-                $baths = get_field('bathrooms');
-                $sqft = get_field('square_footage');
-                $short_description = get_field('short_description');
-                $highlight_badges = get_field('highlight_badges');
-            ?>
-                <div class="hph-listing-card" data-id="<?php echo get_the_ID(); ?>">
-                    <div class="hph-listing-image">
-                        <?php if (has_post_thumbnail()) : ?>
-                            <?php the_post_thumbnail('large'); ?>
-                        <?php else : ?>
-                            <img src="<?php echo get_theme_file_uri('assets/images/placeholder.jpg'); ?>" alt="No image available">
-                        <?php endif; ?>
-                        <div class="hph-listing-price"><?php echo '$ ' . number_format($price); ?></div>
-                        <?php if (!empty($highlight_badges)) : ?>
-                            <div class="hph-listing-badges">
-                                <?php foreach ($highlight_badges as $badge) : ?>
-                                    <span class="hph-badge hph-badge-<?php echo esc_attr($badge); ?>">
-                                        <?php echo esc_html(ucwords(str_replace('_', ' ', $badge))); ?>
-                                    </span>
-                                <?php endforeach; ?>
+            <div class="hph-listing-filters">
+                <form method="get" class="hph-form" id="property-filters">
+                    <div class="hph-grid hph-grid-3">
+                        <div class="hph-form-group">
+                            <label class="hph-form-label"><?php _e('Price Range', 'happy-place'); ?></label>
+                            <div class="hph-form-row">
+                                <input type="number" name="price_min" class="hph-form-input" 
+                                       placeholder="<?php _e('Min', 'happy-place'); ?>"
+                                       value="<?php echo esc_attr($price_min); ?>">
+                                <input type="number" name="price_max" class="hph-form-input" 
+                                       placeholder="<?php _e('Max', 'happy-place'); ?>"
+                                       value="<?php echo esc_attr($price_max); ?>">
                             </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="hph-listing-details">
-                        <h3><?php the_title(); ?></h3>
-                        <?php if ($short_description) : ?>
-                            <p class="hph-listing-description"><?php echo esc_html($short_description); ?></p>
-                        <?php endif; ?>
-                        <div class="hph-listing-meta">
-                            <?php if ($beds) : ?>
-                                <span><?php echo esc_html($beds); ?> BD</span>
-                            <?php endif; ?>
-                            <?php if ($baths) : ?>
-                                <span><?php echo esc_html($baths); ?> BA</span>
-                            <?php endif; ?>
-                            <?php if ($sqft) : ?>
-                                <span><?php echo number_format($sqft); ?> Ft²</span>
-                            <?php endif; ?>
                         </div>
-                        <div class="hph-listing-actions">
-                            <a href="<?php the_permalink(); ?>" class="hph-btn hph-btn-secondary">View Details</a>
-                            <?php if (is_user_logged_in()) : ?>
-                                <button class="hph-btn-favorite" data-listing-id="<?php echo get_the_ID(); ?>">
-                                    <i class="icon-heart"></i>
-                                </button>
-                            <?php endif; ?>
+                        
+                        <div class="hph-form-group">
+                            <label class="hph-form-label"><?php _e('Bedrooms', 'happy-place'); ?></label>
+                            <select name="bedrooms" class="hph-form-select">
+                                <option value=""><?php _e('Any', 'happy-place'); ?></option>
+                                <?php for ($i = 1; $i <= 5; $i++) : ?>
+                                    <option value="<?php echo $i; ?>" <?php selected($bedrooms, $i); ?>>
+                                        <?php echo $i . '+'; ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
                         </div>
-                    </div>
-                </div>
-            <?php endwhile; ?>
-            
-            <?php get_template_part('templates/partials/pagination'); ?>
-            
-            <?php else : ?>
-                <div class="hph-no-results">
-                    <p>No properties match your search criteria.</p>
-                    <button type="reset" class="hph-btn hph-btn-primary" form="listings-search-form">Reset Filters</button>
-                </div>
-            <?php endif; ?>
-        </div>
+                        
+                        <div class="hph-form-group">
+                            <label class="hph-form-label"><?php _e('Bathrooms', 'happy-place'); ?></label>
+                            <select name="bathrooms" class="hph-form-select">
+                                <option value=""><?php _e('Any', 'happy-place'); ?></option>
+                                <?php for ($i = 1; $i <= 4; $i++) : ?>
+                                    <option value="<?php echo $i; ?>" <?php selected($bathrooms, $i); ?>>
+                                        <?php echo $i . '+'; ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
 
-        <div id="map-container" class="hph-map-view">
-            <div id="listings-map" class="hph-full-map"></div>
-            <div id="map-listings-preview" class="hph-map-listings-preview">
-                <!-- Map listing previews will be dynamically populated -->
+                        <div class="hph-form-group">
+                            <label class="hph-form-label"><?php _e('Property Type', 'happy-place'); ?></label>
+                            <select name="property_type" class="hph-form-select">
+                                <option value=""><?php _e('All Types', 'happy-place'); ?></option>
+                                <?php 
+                                $types = get_terms([
+                                    'taxonomy' => 'property_type',
+                                    'hide_empty' => true
+                                ]);
+                                foreach ($types as $type) : ?>
+                                    <option value="<?php echo esc_attr($type->slug); ?>" 
+                                            <?php selected($property_type, $type->slug); ?>>
+                                        <?php echo esc_html($type->name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="hph-form-actions">
+                        <button type="submit" class="hph-btn hph-btn-primary">
+                            <i class="fas fa-search"></i> <?php _e('Search', 'happy-place'); ?>
+                        </button>
+                        <a href="<?php echo get_post_type_archive_link('listing'); ?>" 
+                           class="hph-btn hph-btn-secondary">
+                            <?php _e('Reset Filters', 'happy-place'); ?>
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
+
+        <?php if (have_posts()) : ?>
+            <div class="hph-listings-grid">
+                <?php while (have_posts()) : the_post(); 
+                    $price = get_field('price');
+                    $bedrooms = get_field('bedrooms');
+                    $bathrooms = get_field('bathrooms');
+                    $square_feet = get_field('square_feet');
+                    ?>
+                    
+                    <article <?php post_class('hph-listing-card'); ?>>
+                        <a href="<?php the_permalink(); ?>" class="hph-listing-thumbnail">
+                            <?php if (has_post_thumbnail()) : ?>
+                                <?php the_post_thumbnail('listing-thumb'); ?>
+                            <?php else : ?>
+                                <img src="<?php echo HPH_THEME_URI; ?>/assets/images/placeholder.jpg" 
+                                     alt="<?php _e('Property Image', 'happy-place'); ?>">
+                            <?php endif; ?>
+                            
+                            <?php if (get_field('featured')) : ?>
+                                <span class="hph-badge hph-badge-primary">
+                                    <?php _e('Featured', 'happy-place'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </a>
+
+                        <div class="hph-listing-details">
+                            <h2 class="hph-listing-title">
+                                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                            </h2>
+                            
+                            <div class="hph-listing-meta">
+                                <?php if ($price) : ?>
+                                    <div class="hph-badge hph-badge-primary">
+                                        <?php echo HPH_Theme::format_price($price); ?>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="hph-listing-specs">
+                                    <?php if ($bedrooms) : ?>
+                                        <span><i class="fas fa-bed"></i> <?php echo $bedrooms; ?></span>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($bathrooms) : ?>
+                                        <span><i class="fas fa-bath"></i> <?php echo $bathrooms; ?></span>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($square_feet) : ?>
+                                        <span><i class="fas fa-ruler-combined"></i> 
+                                            <?php echo number_format($square_feet); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <?php 
+                            $excerpt = get_the_excerpt();
+                            if ($excerpt) : ?>
+                                <div class="hph-listing-excerpt">
+                                    <?php echo wp_trim_words($excerpt, 20); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </article>
+                <?php endwhile; ?>
+            </div>
+
+            <div class="hph-pagination">
+                <?php 
+                the_posts_pagination([
+                    'prev_text' => '<i class="fas fa-chevron-left"></i> ' . __('Previous', 'happy-place'),
+                    'next_text' => __('Next', 'happy-place') . ' <i class="fas fa-chevron-right"></i>',
+                    'class' => 'hph-pagination'
+                ]); 
+                ?>
+            </div>
+
+        <?php else : ?>
+            <div class="hph-card hph-no-results">
+                <p><?php _e('No properties found matching your criteria.', 'happy-place'); ?></p>
+                <a href="<?php echo get_post_type_archive_link('listing'); ?>" 
+                   class="hph-btn hph-btn-secondary">
+                    <?php _e('Reset Search', 'happy-place'); ?>
+                </a>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
-<?php get_footer(); ?>
+<?php
+get_footer();

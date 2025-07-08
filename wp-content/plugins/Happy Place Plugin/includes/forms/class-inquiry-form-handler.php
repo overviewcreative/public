@@ -38,7 +38,7 @@ class Inquiry_Form_Handler {
             'email' => sanitize_email($_POST['email']),
             'phone' => sanitize_text_field($_POST['phone']),
             'message' => sanitize_textarea_field($_POST['message']),
-            'property_id' => intval($_POST['property_id']),
+            'listing_id' => intval($_POST['listing_id']),
             'inquiry_type' => sanitize_text_field($_POST['inquiry_type'] ?? 'general')
         ];
 
@@ -77,13 +77,13 @@ class Inquiry_Form_Handler {
 
         $table_name = $wpdb->prefix . 'hph_inquiries';
         
-        $agent_id = get_field('agent', $data['property_id']);
+        $agent_id = get_field('agent', $data['listing_id']);
         $agent_id = is_object($agent_id) ? $agent_id->ID : $agent_id;
 
         $result = $wpdb->insert(
             $table_name,
             [
-                'property_id' => $data['property_id'],
+                'listing_id' => $data['listing_id'],
                 'agent_id' => $agent_id,
                 'name' => $data['name'],
                 'email' => $data['email'],
@@ -104,7 +104,7 @@ class Inquiry_Form_Handler {
      */
     private function process_integrations(array $data, int $inquiry_id): void {
         $integrations = Integrations_Manager::get_instance();
-        $property = get_post($data['property_id']);
+        $listing = get_post($data['listing_id']);
 
         // Create Follow Up Boss lead
         $lead_data = [
@@ -116,9 +116,9 @@ class Inquiry_Form_Handler {
             'source' => 'Website Property Inquiry',
             'type' => 'buyer',
             'property' => [
-                'address' => get_field('street_address', $property->ID),
-                'price' => get_field('price', $property->ID),
-                'url' => get_permalink($property->ID)
+                'address' => get_field('street_address', $listing->ID),
+                'price' => get_field('price', $listing->ID),
+                'url' => get_permalink($listing->ID)
             ],
             'message' => $data['message']
         ];
@@ -137,7 +137,7 @@ class Inquiry_Form_Handler {
                 $last_name,
                 [
                     'INTEREST' => 'Property Inquiry',
-                    'PROPERTY' => $property->post_title
+                    'PROPERTY' => $listing->post_title
                 ]
             );
         }
@@ -150,22 +150,22 @@ class Inquiry_Form_Handler {
      * Send email notifications
      */
     private function send_notifications(array $data, int $inquiry_id): void {
-        $property = get_post($data['property_id']);
-        $agent = get_field('agent', $property->ID);
+        $listing = get_post($data['listing_id']);
+        $agent = get_field('agent', $listing->ID);
 
         // Send to agent
         if ($agent) {
             $agent_email = get_field('email', $agent->ID);
             if ($agent_email) {
-                $subject = "New Property Inquiry - {$property->post_title}";
-                $message = $this->get_agent_email_template($data, $property, $inquiry_id);
+                $subject = "New Listing Inquiry - {$listing->post_title}";
+                $message = $this->get_agent_email_template($data, $listing, $inquiry_id);
                 wp_mail($agent_email, $subject, $message, ['Content-Type: text/html; charset=UTF-8']);
             }
         }
 
         // Send confirmation to inquirer
-        $subject = "Thank you for your interest in {$property->post_title}";
-        $message = $this->get_confirmation_email_template($data, $property);
+        $subject = "Thank you for your interest in {$listing->post_title}";
+        $message = $this->get_confirmation_email_template($data, $listing);
         wp_mail($data['email'], $subject, $message, ['Content-Type: text/html; charset=UTF-8']);
     }
 
@@ -174,7 +174,7 @@ class Inquiry_Form_Handler {
      */
     public function render_inquiry_form($atts): string {
         $atts = shortcode_atts([
-            'property_id' => get_the_ID(),
+            'listing_id' => get_the_ID(),
             'show_phone' => 'true',
             'show_opt_in' => 'true',
             'title' => 'Request Information'
@@ -187,7 +187,7 @@ class Inquiry_Form_Handler {
             
             <form id="hph-inquiry-form" class="hph-inquiry-form">
                 <?php wp_nonce_field('hph_inquiry_nonce', 'inquiry_nonce'); ?>
-                <input type="hidden" name="property_id" value="<?php echo esc_attr($atts['property_id']); ?>">
+                <input type="hidden" name="listing_id" value="<?php echo esc_attr($atts['listing_id']); ?>">
                 
                 <div class="hph-form-row">
                     <div class="hph-form-group">

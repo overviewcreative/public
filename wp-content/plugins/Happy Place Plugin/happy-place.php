@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Happy Place Real Estate Platform
- * Description: Comprehensive real estate management solution with API integrations
+ * Description: Comprehensive real estate management solution
  * Version: 1.0.0
  * Author: Happy Place Team
  * Text Domain: happy-place
@@ -40,9 +40,8 @@ spl_autoload_register(function($class) {
         'HappyPlace\\Fields\\ACF_Field_Groups' => 'includes/fields/class-acf-field-groups.php',
         'HappyPlace\\Compliance' => 'includes/class-compliance.php',
         'HappyPlace\\Core\\Database' => 'includes/class-database.php',
-        'HappyPlace\\Integrations\\Integrations_Manager' => 'includes/integrations/class-integrations-manager.php',
-        'HappyPlace\\Admin\\API_Settings' => 'includes/admin/class-api-settings.php',
         'HappyPlace\\Admin\\Admin_Menu' => 'includes/admin/class-admin-menu.php',
+        'HappyPlace\\Admin\\CSV_Import_Tool' => 'includes/admin/class-csv-import-tool.php',
         'HappyPlace\\Utilities\\PDF_Generator' => 'includes/utilities/class-pdf-generator.php',
     ];
 
@@ -103,7 +102,7 @@ class Plugin {
         // Initialize core components
         $this->init_core_components();
         $this->init_admin_components();
-        $this->init_integrations();
+        $this->init_pdf_generator();
         
         // Schedule rewrite flush if needed
         add_action('init', [$this, 'maybe_flush_rewrite_rules'], 999);
@@ -147,27 +146,84 @@ class Plugin {
             return;
         }
 
-        // Admin Menu
-        if (class_exists('HappyPlace\\Admin\\Admin_Menu')) {
-            Admin\Admin_Menu::get_instance();
+        // Initialize all admin components
+        $admin_components = [
+            'HappyPlace\\Admin\\Admin_Menu',
+            'HappyPlace\\Admin\\CSV_Import_Tool'
+        ];
+
+        foreach ($admin_components as $component) {
+            if (class_exists($component)) {
+                $component::get_instance();
+            }
         }
 
-        // API Settings
-        if (class_exists('HappyPlace\\Admin\\API_Settings')) {
-            Admin\API_Settings::get_instance();
+        // Enqueue admin scripts and styles
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+    }
+
+    /**
+     * Enqueue admin assets
+     */
+    public function enqueue_admin_assets($hook): void {
+        $plugin_pages = [
+            'happy-place_page_happy-place-api-settings',
+            'happy-place_page_happy-place-integrations',
+            'happy-place_page_happy-place-tools',
+            'toplevel_page_happy-place'
+        ];
+
+        // Only load on plugin pages
+        if (!in_array($hook, $plugin_pages)) {
+            return;
+        }
+
+        // Enqueue main admin styles
+        wp_enqueue_style(
+            'happy-place-admin',
+            HPH_PLUGIN_URL . 'assets/css/admin/admin.css',
+            [],
+            HPH_VERSION
+        );
+
+        // Enqueue main admin script
+        wp_enqueue_script(
+            'happy-place-admin',
+            HPH_PLUGIN_URL . 'assets/js/admin/admin.js',
+            ['jquery'],
+            HPH_VERSION,
+            true
+        );
+
+        // Enqueue integrations script on the integrations page
+        if ($hook === 'happy-place_page_happy-place-integrations') {
+            wp_enqueue_script(
+                'happy-place-integrations',
+                HPH_PLUGIN_URL . 'assets/js/admin/integrations.js',
+                ['jquery'],
+                HPH_VERSION,
+                true
+            );
+
+            wp_localize_script('happy-place-integrations', 'hphIntegrations', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('happy_place_integrations'),
+                'strings' => [
+                    'testingConnection' => __('Testing connection...', 'happy-place'),
+                    'connectionSuccess' => __('Connection successful!', 'happy-place'),
+                    'connectionFailed' => __('Connection failed', 'happy-place'),
+                    'savingSettings' => __('Saving settings...', 'happy-place'),
+                    'settingsSaved' => __('Settings saved successfully!', 'happy-place'),
+                    'settingsFailed' => __('Failed to save settings', 'happy-place')
+                ]
+            ]);
         }
     }
 
     /**
-     * Initialize integrations
+     * PDF Generator initialization
      */
-    private function init_integrations(): void {
-        // Integrations Manager
-        if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
-            Integrations\Integrations_Manager::get_instance();
-        }
-
-        // PDF Generator
+    private function init_pdf_generator(): void {
         if (class_exists('HappyPlace\\Utilities\\PDF_Generator')) {
             Utilities\PDF_Generator::get_instance();
         }
@@ -211,6 +267,27 @@ class Plugin {
         
         if (!get_option('hph_sync_settings')) {
             update_option('hph_sync_settings', $default_sync_settings);
+        }
+
+        // Create CSV template directory and file
+        $this->create_csv_template();
+    }
+
+    /**
+     * Create CSV template file
+     */
+    private function create_csv_template(): void {
+        $template_dir = HPH_PLUGIN_DIR . 'templates/';
+        if (!file_exists($template_dir)) {
+            wp_mkdir_p($template_dir);
+        }
+
+        $template_file = $template_dir . 'listings-template.csv';
+        if (!file_exists($template_file)) {
+            $csv_content = 'title,price,bedrooms,bathrooms,square_footage,lot_size,year_built,street_address,city,region,zip_code,property_type,status,short_description,interior_features,exterior_features,utility_features,latitude,longitude,main_photo_url,agent_email,virtual_tour_link,mls_number' . "\n";
+            $csv_content .= '"Beautiful Colonial Home","450000","4","3","2200","0.5","1995","123 Main Street","Wilmington","DE","19801","Single Family","Active","Stunning 4-bedroom colonial in desirable neighborhood with updated kitchen and spacious yard.","Updated kitchen with granite counters, hardwood floors throughout, master suite with walk-in closet, finished basement","Two-car garage, large deck, mature landscaping, private backyard","Central air, gas heat, washer/dryer included","39.744655","-75.546962","https://example.com/photos/123main.jpg","john.agent@realtor.com","https://virtualtour.com/123main","DE12345678"' . "\n";
+            
+            file_put_contents($template_file, $csv_content);
         }
     }
 
@@ -269,5 +346,7 @@ function hph_get_place_details(string $place_id): ?array {
     return null;
 }
 
-// Add immediate debug to see if this file is being loaded
-error_log('HPH: Main plugin file loaded with integrations');
+// Helper function to format price
+function hph_format_price($price): string {
+    return '$' . number_format((float)$price);
+}

@@ -11,152 +11,131 @@ $current_filters = array(
 );
 ?>
 
-<div class="hph-filter-chips">
+<div class="hph-filter-section hph-space-y-6">
     <div class="hph-filter-group">
-        <h4>Price Range</h4>
-        <div class="hph-chip-container">
+        <h4 class="hph-text-sm hph-font-semibold hph-text-gray-700 hph-mb-3">
+            <?php esc_html_e('Price Range', 'happy-place'); ?>
+        </h4>
+        <div class="hph-flex hph-flex-wrap hph-gap-2">
             <?php
             $price_ranges = array(
-                'any' => 'Any',
-                'under-500k' => 'Under $500K',
-                '500k-800k' => '$500K - $800K',
-                '800k-1m' => '$800K - $1M',
-                'over-1m' => 'Over $1M'
+                'any' => __('Any Price', 'happy-place'),
+                'under-500k' => __('Under $500K', 'happy-place'),
+                '500k-800k' => __('$500K - $800K', 'happy-place'),
+                '800k-1m' => __('$800K - $1M', 'happy-place'),
+                'over-1m' => __('Over $1M', 'happy-place')
             );
             foreach ($price_ranges as $value => $label) :
+                $is_active = $current_filters['price_range'] === $value;
             ?>
-                <button class="hph-filter-chip <?php echo $current_filters['price_range'] === $value ? 'active' : ''; ?>" 
-                        data-filter="price" 
-                        data-value="<?php echo esc_attr($value); ?>">
+                <button class="hph-chip <?php echo $is_active ? 'hph-chip--active' : ''; ?>" 
+                        data-filter="price_range" 
+                        data-value="<?php echo esc_attr($value); ?>"
+                        aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>">
                     <?php echo esc_html($label); ?>
+                    <?php if ($is_active) : ?>
+                        <span class="hph-chip__icon">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    <?php endif; ?>
                 </button>
             <?php endforeach; ?>
         </div>
     </div>
 
     <div class="hph-filter-group">
-        <h4>Bedrooms</h4>
-        <div class="hph-chip-container">
+        <h4 class="hph-text-sm hph-font-semibold hph-text-gray-700 hph-mb-3">
+            <?php esc_html_e('Bedrooms', 'happy-place'); ?>
+        </h4>
+        <div class="hph-flex hph-flex-wrap hph-gap-2">
             <?php
             $bedroom_options = array(
-                'any' => 'Any',
-                '1' => '1+',
-                '2' => '2+',
-                '3' => '3+',
-                '4' => '4+'
+                'any' => __('Any Beds', 'happy-place'),
+                '1' => __('1+ Beds', 'happy-place'),
+                '2' => __('2+ Beds', 'happy-place'),
+                '3' => __('3+ Beds', 'happy-place'),
+                '4' => __('4+ Beds', 'happy-place')
             );
             foreach ($bedroom_options as $value => $label) :
+                $is_active = $current_filters['bedrooms'] === $value;
             ?>
-                <button class="hph-filter-chip <?php echo $current_filters['bedrooms'] === $value ? 'active' : ''; ?>" 
+                <button class="hph-chip <?php echo $is_active ? 'hph-chip--active' : ''; ?>" 
                         data-filter="bedrooms" 
-                        data-value="<?php echo esc_attr($value); ?>">
-                    <?php echo esc_html($label); ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <div class="hph-filter-group">
-        <h4>Property Type</h4>
-        <div class="hph-chip-container">
-            <?php
-            $property_types = array(
-                'all' => 'All Types',
-                'single-family' => 'Single Family',
-                'townhouse' => 'Townhouse',
-                'condo' => 'Condo'
-            );
-            foreach ($property_types as $value => $label) :
-            ?>
-                <button class="hph-filter-chip <?php echo $current_filters['property_type'] === $value ? 'active' : ''; ?>" 
-                        data-filter="property-type" 
-                        data-value="<?php echo esc_attr($value); ?>">
-                    <?php echo esc_html($label); ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <div class="hph-filter-group">
-        <h4>Features</h4>
-        <div class="hph-chip-container">
-            <?php
-            $features = array(
-                'pool' => 'Pool',
-                'garage' => 'Garage',
-                'fireplace' => 'Fireplace',
-                'waterfront' => 'Waterfront'
-            );
-            foreach ($features as $value => $label) :
-            ?>
-                <button class="hph-filter-chip <?php echo in_array($value, $current_filters['features']) ? 'active' : ''; ?>" 
-                        data-filter="features" 
                         data-value="<?php echo esc_attr($value); ?>"
-                        data-multi="true">
+                        aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>">
                     <?php echo esc_html($label); ?>
+                    <?php if ($is_active) : ?>
+                        <span class="hph-chip__icon">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    <?php endif; ?>
                 </button>
             <?php endforeach; ?>
         </div>
     </div>
-</div>
 
-<div class="hph-active-filters">
-    <?php
-    $active_count = 0;
-    foreach ($current_filters as $type => $value) {
-        if ($type === 'features') {
-            $active_count += count($value);
-        } elseif ($value !== 'any' && $value !== 'all') {
-            $active_count++;
-        }
-    }
-    
-    if ($active_count > 0) :
-    ?>
-        <div class="hph-active-filters-header">
-            <span><?php echo sprintf(__('%d Active Filters', 'happy-place'), $active_count); ?></span>
-            <button type="reset" class="hph-btn hph-btn-text" form="listings-search-form">
-                <?php esc_html_e('Clear All', 'happy-place'); ?>
-            </button>
-        </div>
-        
-        <div class="hph-active-filters-list">
+    <div class="hph-filter-group">
+        <h4 class="hph-text-sm hph-font-semibold hph-text-gray-700 hph-mb-3">
+            <?php esc_html_e('Property Type', 'happy-place'); ?>
+        </h4>
+        <div class="hph-flex hph-flex-wrap hph-gap-2">
             <?php
-            // Display price range filter
-            if ($current_filters['price_range'] !== 'any') {
-                echo sprintf(
-                    '<span class="hph-active-filter">%s <button type="button" data-clear="price">×</button></span>',
-                    esc_html($price_ranges[$current_filters['price_range']])
-                );
-            }
-            
-            // Display bedrooms filter
-            if ($current_filters['bedrooms'] !== 'any') {
-                echo sprintf(
-                    '<span class="hph-active-filter">%s Bedrooms <button type="button" data-clear="bedrooms">×</button></span>',
-                    esc_html($bedroom_options[$current_filters['bedrooms']])
-                );
-            }
-            
-            // Display property type filter
-            if ($current_filters['property_type'] !== 'all') {
-                echo sprintf(
-                    '<span class="hph-active-filter">%s <button type="button" data-clear="property-type">×</button></span>',
-                    esc_html($property_types[$current_filters['property_type']])
-                );
-            }
-            
-            // Display feature filters
-            foreach ($current_filters['features'] as $feature) {
-                if (isset($features[$feature])) {
-                    echo sprintf(
-                        '<span class="hph-active-filter">%s <button type="button" data-clear="features" data-value="%s">×</button></span>',
-                        esc_html($features[$feature]),
-                        esc_attr($feature)
-                    );
-                }
-            }
+            $property_types = get_terms(array(
+                'taxonomy' => 'property_type',
+                'hide_empty' => false,
+            ));
+
+            // Add "All Types" option
+            $all_types = new stdClass();
+            $all_types->slug = 'all';
+            $all_types->name = __('All Types', 'happy-place');
+            array_unshift($property_types, $all_types);
+
+            foreach ($property_types as $type) :
+                $is_active = $current_filters['property_type'] === $type->slug;
             ?>
+                <button class="hph-chip <?php echo $is_active ? 'hph-chip--active' : ''; ?>" 
+                        data-filter="property_type" 
+                        data-value="<?php echo esc_attr($type->slug); ?>"
+                        aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>">
+                    <?php echo esc_html($type->name); ?>
+                    <?php if ($is_active) : ?>
+                        <span class="hph-chip__icon">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    <?php endif; ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <?php if (!empty($current_filters['features'])) : ?>
+        <div class="hph-filter-group">
+            <h4 class="hph-text-sm hph-font-semibold hph-text-gray-700 hph-mb-3">
+                <?php esc_html_e('Features', 'happy-place'); ?>
+            </h4>
+            <div class="hph-flex hph-flex-wrap hph-gap-2">
+                <?php foreach ($current_filters['features'] as $feature) : ?>
+                    <button class="hph-chip hph-chip--active" 
+                            data-filter="features" 
+                            data-value="<?php echo esc_attr($feature); ?>"
+                            aria-pressed="true">
+                        <?php echo esc_html($feature); ?>
+                        <span class="hph-chip__icon">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (array_filter($current_filters)) : ?>
+        <div class="hph-filter-actions hph-mt-4">
+            <button class="hph-btn hph-btn--text hph-btn--sm" data-action="clear-all">
+                <i class="fas fa-times-circle hph-mr-1"></i>
+                <?php esc_html_e('Clear All Filters', 'happy-place'); ?>
+            </button>
         </div>
     <?php endif; ?>
 </div>

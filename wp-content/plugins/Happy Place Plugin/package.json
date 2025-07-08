@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@glidejs/glide": "^3.6.0",
-    "airtable": "^0.12.2",
+
     "axios": "^1.10.0",
     "chart.js": "^3.9.1",
     "leaflet": "^1.9.4",

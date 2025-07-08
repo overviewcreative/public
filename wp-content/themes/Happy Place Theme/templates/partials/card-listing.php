@@ -6,71 +6,85 @@
  * 
  * @package HappyPlace
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+$price = get_field('price');
+$bedrooms = get_field('bedrooms');
+$bathrooms = get_field('bathrooms');
+$square_feet = get_field('square_feet');
+$featured = get_field('featured');
+$status = get_field('status');
 ?>
 
-<article <?php post_class('listing-card'); ?>>
-    <div class="listing-card__image">
+<article <?php post_class('hph-listing-card'); ?>>
+    <a href="<?php the_permalink(); ?>" class="hph-listing-thumbnail">
         <?php if (has_post_thumbnail()) : ?>
-            <a href="<?php the_permalink(); ?>">
-                <?php the_post_thumbnail('listing-card'); ?>
-            </a>
+            <?php the_post_thumbnail('listing-thumb'); ?>
+        <?php else : ?>
+            <img src="<?php echo HPH_THEME_URI; ?>/assets/images/placeholder.jpg" 
+                 alt="<?php _e('Property Image', 'happy-place'); ?>">
         <?php endif; ?>
         
-        <div class="listing-card__price">
-            <?php echo esc_html(get_field('price')); ?>
-        </div>
+        <?php if ($featured) : ?>
+            <span class="hph-badge hph-badge-primary hph-badge-featured">
+                <?php _e('Featured', 'happy-place'); ?>
+            </span>
+        <?php endif; ?>
+
+        <?php if ($status) : ?>
+            <span class="hph-badge hph-badge-<?php echo esc_attr($status); ?>">
+                <?php echo esc_html(ucfirst($status)); ?>
+            </span>
+        <?php endif; ?>
+    </a>
+
+    <div class="hph-listing-details">
+        <h2 class="hph-listing-title">
+            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+        </h2>
         
-        <?php if ($status = get_field('status')) : ?>
-            <div class="listing-card__status listing-card__status--<?php echo esc_attr($status); ?>">
-                <?php echo esc_html($status); ?>
+        <div class="hph-listing-meta">
+            <?php if ($price) : ?>
+                <div class="hph-badge hph-badge-primary">
+                    <?php echo HPH_Theme::format_price($price); ?>
+                </div>
+            <?php endif; ?>
+            
+            <div class="hph-listing-specs">
+                <?php if ($bedrooms) : ?>
+                    <span><i class="fas fa-bed"></i> <?php echo $bedrooms; ?></span>
+                <?php endif; ?>
+                
+                <?php if ($bathrooms) : ?>
+                    <span><i class="fas fa-bath"></i> <?php echo $bathrooms; ?></span>
+                <?php endif; ?>
+                
+                <?php if ($square_feet) : ?>
+                    <span><i class="fas fa-ruler-combined"></i> 
+                        <?php echo number_format($square_feet); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php 
+        $excerpt = get_the_excerpt();
+        if ($excerpt) : ?>
+            <div class="hph-listing-excerpt">
+                <?php echo wp_trim_words($excerpt, 20); ?>
             </div>
         <?php endif; ?>
-    </div>
 
-    <div class="listing-card__content">
-        <h2 class="listing-card__title">
-            <a href="<?php the_permalink(); ?>">
-                <?php the_title(); ?>
-            </a>
-        </h2>
-
-        <?php if ($address = get_field('address')) : ?>
-            <p class="listing-card__address">
-                <?php echo esc_html($address); ?>
-            </p>
+        <?php
+        $location = get_field('location');
+        if ($location && isset($location['address'])) : ?>
+            <div class="hph-listing-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <?php echo esc_html($location['address']); ?>
+            </div>
         <?php endif; ?>
-
-        <div class="listing-card__meta">
-            <?php if ($beds = get_field('bedrooms')) : ?>
-                <span class="listing-card__beds">
-                    <i class="fas fa-bed"></i>
-                    <?php echo esc_html($beds); ?> Beds
-                </span>
-            <?php endif; ?>
-
-            <?php if ($baths = get_field('bathrooms')) : ?>
-                <span class="listing-card__baths">
-                    <i class="fas fa-bath"></i>
-                    <?php echo esc_html($baths); ?> Baths
-                </span>
-            <?php endif; ?>
-
-            <?php if ($sqft = get_field('square_footage')) : ?>
-                <span class="listing-card__sqft">
-                    <i class="fas fa-vector-square"></i>
-                    <?php echo number_format($sqft); ?> Sq Ft
-                </span>
-            <?php endif; ?>
-        </div>
-
-        <div class="listing-card__actions">
-            <a href="<?php the_permalink(); ?>" class="btn btn-primary">View Details</a>
-            
-            <?php if (is_user_logged_in()) : ?>
-                <button class="btn btn-icon favorite-toggle" data-listing="<?php the_ID(); ?>" aria-label="Add to favorites">
-                    <i class="far fa-heart"></i>
-                </button>
-            <?php endif; ?>
-        </div>
     </div>
 </article>

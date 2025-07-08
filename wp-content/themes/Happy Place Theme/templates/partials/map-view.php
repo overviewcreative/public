@@ -11,9 +11,10 @@ if (!defined('ABSPATH')) {
 }
 ?>
 
-<div id="map-container" class="hph-map-view">
-    <div id="listings-map" class="hph-full-map"></div>
-    <div id="map-listings-preview" class="hph-map-listings-preview">
+<div class="hph-map-container hph-relative hph-h-screen">
+    <div id="listings-map" class="hph-map hph-w-full hph-h-full"></div>
+    
+    <div id="map-listings-preview" class="hph-map-preview hph-absolute hph-top-4 hph-right-4 hph-w-80 hph-max-h-[calc(100vh-2rem)] hph-overflow-y-auto hph-bg-white hph-rounded-lg hph-shadow-lg">
         <?php if (have_posts()) : while (have_posts()) : the_post(); 
             $price = get_field('price');
             $beds = get_field('bedrooms');
@@ -24,45 +25,74 @@ if (!defined('ABSPATH')) {
 
             $thumbnail = '';
             if (function_exists('has_post_thumbnail') && has_post_thumbnail()) {
-                $thumbnail = get_the_post_thumbnail(get_the_ID(), 'thumbnail');
+                $thumbnail = get_the_post_thumbnail(get_the_ID(), 'thumbnail', ['class' => 'hph-w-full hph-h-32 hph-object-cover']);
             }
         ?>
-            <div class="map-preview-card" data-id="<?php echo get_the_ID(); ?>" data-lat="<?php echo esc_attr($lat); ?>" data-lng="<?php echo esc_attr($lng); ?>">
-                <div class="map-preview-image">
+            <div class="hph-map-card hph-p-4 hph-border-b hph-border-gray-200 hover:hph-bg-gray-50 hph-transition-colors" 
+                 data-id="<?php echo get_the_ID(); ?>" 
+                 data-lat="<?php echo esc_attr($lat); ?>" 
+                 data-lng="<?php echo esc_attr($lng); ?>">
+                
+                <div class="hph-map-card__media hph-mb-3">
                     <?php if ($thumbnail) : ?>
                         <?php echo $thumbnail; ?>
                     <?php else : ?>
-                        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/images/placeholder.jpg'); ?>" alt="No image available">
+                        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__)) . 'assets/images/placeholder.jpg'); ?>" 
+                             alt="<?php esc_attr_e('No image available', 'happy-place'); ?>"
+                             class="hph-w-full hph-h-32 hph-object-cover">
                     <?php endif; ?>
                 </div>
-                <div class="map-preview-details">
-                    <h4><?php echo get_the_title(); ?></h4>
+
+                <div class="hph-map-card__content">
+                    <h4 class="hph-text-lg hph-font-semibold hph-mb-2"><?php echo get_the_title(); ?></h4>
+                    
                     <?php if ($price) : ?>
-                        <div class="map-preview-price">
-                            $<?php echo number_format(floatval($price)); ?>
+                        <div class="hph-badge hph-badge--primary hph-mb-3">
+                            <?php echo HPH_Theme::format_price($price); ?>
                         </div>
                     <?php endif; ?>
-                    <div class="map-preview-meta">
+
+                    <div class="hph-flex hph-items-center hph-space-x-4 hph-text-sm hph-text-gray-600">
                         <?php if ($beds) : ?>
-                            <span><?php echo esc_html($beds); ?> BD</span>
+                            <span class="hph-flex hph-items-center">
+                                <i class="fas fa-bed hph-mr-1"></i>
+                                <?php echo esc_html($beds); ?> <?php echo _n('Bed', 'Beds', $beds, 'happy-place'); ?>
+                            </span>
                         <?php endif; ?>
+
                         <?php if ($baths) : ?>
-                            <span><?php echo esc_html($baths); ?> BA</span>
+                            <span class="hph-flex hph-items-center">
+                                <i class="fas fa-bath hph-mr-1"></i>
+                                <?php echo esc_html($baths); ?> <?php echo _n('Bath', 'Baths', $baths, 'happy-place'); ?>
+                            </span>
                         <?php endif; ?>
+
                         <?php if ($sqft) : ?>
-                            <span><?php echo number_format(floatval($sqft)); ?> Ft²</span>
+                            <span class="hph-flex hph-items-center">
+                                <i class="fas fa-ruler-combined hph-mr-1"></i>
+                                <?php echo number_format($sqft); ?> <?php esc_html_e('sq ft', 'happy-place'); ?>
+                            </span>
                         <?php endif; ?>
                     </div>
-                    <div class="map-preview-actions">
-                        <a href="<?php echo get_permalink(); ?>" class="hph-btn hph-btn-sm hph-btn-secondary">View Details</a>
-                        <?php if (function_exists('is_user_logged_in') && is_user_logged_in()) : ?>
-                            <button class="hph-btn-favorite" data-listing-id="<?php echo get_the_ID(); ?>">
-                                <i class="icon-heart"></i>
-                            </button>
-                        <?php endif; ?>
-                    </div>
+
+                    <a href="<?php the_permalink(); ?>" class="hph-btn hph-btn--text hph-mt-3">
+                        <?php esc_html_e('View Details', 'happy-place'); ?>
+                        <i class="fas fa-arrow-right hph-ml-1"></i>
+                    </a>
                 </div>
             </div>
         <?php endwhile; endif; ?>
+    </div>
+
+    <div id="map-controls" class="hph-map-controls hph-absolute hph-top-4 hph-left-4 hph-space-y-2">
+        <button class="hph-btn hph-btn--white hph-shadow-lg" id="map-center">
+            <i class="fas fa-crosshairs"></i>
+        </button>
+        <button class="hph-btn hph-btn--white hph-shadow-lg" id="map-zoom-in">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="hph-btn hph-btn--white hph-shadow-lg" id="map-zoom-out">
+            <i class="fas fa-minus"></i>
+        </button>
     </div>
 </div>
