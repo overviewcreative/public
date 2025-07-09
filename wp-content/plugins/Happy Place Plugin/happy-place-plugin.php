@@ -323,3 +323,7 @@ function hph_format_price($price): string {
 }
 
 require_once plugin_dir_path(__FILE__) . 'includes/graphics/class-flyer-generator.php';
+require_once HPH_PLUGIN_DIR . 'includes/utilities/load-airtable-sync.php';
+if (is_admin()) {
+    require_once HPH_PLUGIN_DIR . 'includes/admin/class-airtable-settings-page.php';
+}
