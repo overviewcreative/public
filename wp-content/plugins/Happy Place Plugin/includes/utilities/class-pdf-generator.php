@@ -34,6 +34,13 @@ class PDF_Generator {
     ];
 
     /**
+     * Flag to check if dependencies are loaded
+     *
+     * @var bool
+     */
+    private bool $has_dependencies = false;
+
+    /**
      * Get instance of this class
      *
      * @return self
@@ -46,7 +53,7 @@ class PDF_Generator {
      * Constructor
      */
     private function __construct() {
-        // Ensure DomPDF is loaded
+        // Load dependencies
         $this->load_dependencies();
 
         // Register cleanup hook
@@ -57,9 +64,44 @@ class PDF_Generator {
      * Load PDF generation dependencies
      */
     private function load_dependencies(): void {
-        if (!class_exists('Dompdf\Dompdf')) {
-            require_once plugin_dir_path(dirname(__DIR__)) . 'vendor/autoload.php';
+        $composer_autoload = plugin_dir_path(dirname(dirname(__FILE__))) . 'vendor/autoload.php';
+        
+        if (!file_exists($composer_autoload)) {
+            error_log('PDF Generator: composer.json not found at ' . $composer_autoload);
+            $this->has_dependencies = false;
+            add_action('admin_notices', [$this, 'show_install_notice']);
+            return;
         }
+
+        try {
+            require_once $composer_autoload;
+            if (!class_exists('Dompdf\Dompdf')) {
+                throw new \Exception('DomPDF class not found');
+            }
+            $this->has_dependencies = true;
+        } catch (\Exception $e) {
+            error_log('PDF Generator: ' . $e->getMessage());
+            $this->has_dependencies = false;
+            add_action('admin_notices', [$this, 'show_install_notice']);
+        }
+    }
+
+    public function show_install_notice(): void {
+        $plugin_dir = plugin_dir_path(dirname(dirname(__FILE__)));
+        $class = 'notice notice-error';
+        $message = sprintf(
+            __('PDF Generator requires dependencies. Please run these commands in your terminal:<br><code>cd %s</code><br><code>composer install</code>', 'happy-place'),
+            esc_html($plugin_dir)
+        );
+
+        printf(
+            '<div class="%1$s"><p>%2$s</p></div>',
+            esc_attr($class),
+            wp_kses($message, [
+                'br' => [],
+                'code' => []
+            ])
+        );
     }
 
     /**
@@ -70,6 +112,9 @@ class PDF_Generator {
      * @return string|null URL of the generated PDF or null on failure
      */
     public function generate_listing_pdf(int $listing_id, array $config = []): ?string {
+        if (!$this->has_dependencies) {
+            return null;
+        }
         // Merge default config with provided config
         $config = array_merge($this->default_config, $config);
 

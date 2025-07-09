@@ -317,35 +317,6 @@ class Plugin {
 // Initialize the plugin
 Plugin::get_instance();
 
-// Add some helper functions for easy access to integrations
-function hph_geocode_address(string $address): ?array {
-    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
-        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->geocode_address($address);
-    }
-    return null;
-}
-
-function hph_create_followupboss_lead(array $lead_data): bool {
-    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
-        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->create_followupboss_lead($lead_data);
-    }
-    return false;
-}
-
-function hph_add_mailchimp_subscriber(string $email, string $first_name = '', string $last_name = '', array $merge_fields = []): bool {
-    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
-        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->add_mailchimp_subscriber($email, $first_name, $last_name, $merge_fields);
-    }
-    return false;
-}
-
-function hph_get_place_details(string $place_id): ?array {
-    if (class_exists('HappyPlace\\Integrations\\Integrations_Manager')) {
-        return \HappyPlace\Integrations\Integrations_Manager::get_instance()->get_place_details($place_id);
-    }
-    return null;
-}
-
 // Helper function to format price
 function hph_format_price($price): string {
     return '$' . number_format((float)$price);
