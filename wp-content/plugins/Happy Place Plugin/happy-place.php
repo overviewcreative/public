@@ -321,3 +321,5 @@ Plugin::get_instance();
 function hph_format_price($price): string {
     return '$' . number_format((float)$price);
 }
+
+require_once plugin_dir_path(__FILE__) . 'includes/graphics/class-flyer-generator.php';
