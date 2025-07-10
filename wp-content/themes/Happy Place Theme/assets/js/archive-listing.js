@@ -71,30 +71,29 @@ class HPHListingsArchive {
     
     bindFilterInteractions() {
         // Bedroom/bathroom options
-        document.querySelectorAll('.hph-bedroom-option, .hph-bathroom-option').forEach(option => {
-            const input = option.querySelector('input');
-            if (input) {
-                input.addEventListener('change', () => {
-                    // Update active states
-                    const group = option.closest('.hph-bedroom-options, .hph-bathroom-options');
-                    group.querySelectorAll('.hph-bedroom-option, .hph-bathroom-option').forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    if (input.checked) {
-                        option.classList.add('active');
-                    }
-                });
-            }
+        document.querySelectorAll('.hph-bedroom-option input, .hph-bathroom-option input').forEach(input => {
+            input.addEventListener('change', (e) => this.handleFilterChange(e));
+            input.addEventListener('click', (e) => {
+                // Handle clicking already selected option
+                if (this.currentFilters[e.target.name] === e.target.value) {
+                    e.preventDefault();
+                    this.handleFilterChange(e);
+                }
+            });
+        });
+        
+        // Feature options
+        document.querySelectorAll('.hph-feature-option input').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const option = e.target.closest('.hph-feature-option');
+                option.classList.toggle('active', e.target.checked);
+                this.handleFilterChange(e);
+            });
         });
         
         // Price inputs with validation
-        document.querySelectorAll('.hph-price-input').forEach(input => {
-            input.addEventListener('blur', this.validatePriceRange.bind(this));
-        });
-        
-        // Feature checkboxes
-        document.querySelectorAll('.hph-feature-checkbox input').forEach(checkbox => {
-            checkbox.addEventListener('change', this.updateFeatureCount.bind(this));
+        document.querySelectorAll('.hph-price-select').forEach(select => {
+            select.addEventListener('change', (e) => this.handleFilterChange(e));
         });
     }
     
@@ -148,7 +147,24 @@ class HPHListingsArchive {
     
     handleFilterChange(e) {
         // Auto-apply filters for certain inputs
-        if (e.target.type === 'radio' || e.target.type === 'checkbox') {
+        if (e.target.type === 'radio') {
+            // Handle radio button deselection
+            if (this.currentFilters[e.target.name] === e.target.value) {
+                // If clicking the same radio button that's already selected
+                e.target.checked = false;
+                const option = e.target.closest('.hph-bedroom-option, .hph-bathroom-option');
+                if (option) {
+                    option.classList.remove('active');
+                }
+                // Remove from filters
+                delete this.currentFilters[e.target.name];
+            }
+            
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this.applyFilters();
+            }, 500);
+        } else if (e.target.type === 'checkbox') {
             clearTimeout(this.debounceTimer);
             this.debounceTimer = setTimeout(() => {
                 this.applyFilters();
@@ -209,16 +225,14 @@ class HPHListingsArchive {
         
         // Get all form data
         for (let [key, value] of formData.entries()) {
-            if (value) {
-                if (filters[key]) {
-                    if (Array.isArray(filters[key])) {
-                        filters[key].push(value);
-                    } else {
-                        filters[key] = [filters[key], value];
-                    }
-                } else {
-                    filters[key] = value;
+            if (key === 'features[]') {
+                // Handle multiple checkboxes
+                if (!filters[key]) {
+                    filters[key] = [];
                 }
+                filters[key].push(value);
+            } else if (value) {
+                filters[key] = value;
             }
         }
         
@@ -230,6 +244,14 @@ class HPHListingsArchive {
         
         // Reset to first page when filtering
         filters.paged = 1;
+        
+        // Clear empty filters
+        Object.keys(filters).forEach(key => {
+            if (filters[key] === '' || 
+                (Array.isArray(filters[key]) && filters[key].length === 0)) {
+                delete filters[key];
+            }
+        });
         
         this.updateUrl(filters);
         this.loadResults();
@@ -609,14 +631,25 @@ class HPHListingsArchive {
     
     updateFilterUI() {
         // Update bedroom/bathroom active states
-        document.querySelectorAll('input[name="bedrooms"]:checked, input[name="bathrooms"]:checked').forEach(input => {
+        document.querySelectorAll('.hph-bedroom-option input, .hph-bathroom-option input').forEach(input => {
             const option = input.closest('.hph-bedroom-option, .hph-bathroom-option');
             if (option) {
-                option.classList.add('active');
+                if (input.checked && this.currentFilters[input.name] === input.value) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                    input.checked = false;
+                }
             }
         });
         
-        // Update feature count
+        // Update feature count and states
+        document.querySelectorAll('.hph-feature-checkbox input').forEach(checkbox => {
+            const features = this.currentFilters['features[]'] || [];
+            checkbox.checked = Array.isArray(features) ? 
+                features.includes(checkbox.value) : 
+                features === checkbox.value;
+        });
         this.updateFeatureCount();
     }
     

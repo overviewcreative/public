@@ -425,20 +425,21 @@
     font-size: var(--hph-font-size-sm);
     font-weight: 500;
     opacity: 0.9;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--hph-spacing-1);
+    border-radius: var(--hph-radius-base);
+    backdrop-filter: blur(8px);
 }
 
 .hph-stat-icon {
     width: 20px;
     height: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: var(--hph-radius-base);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--hph-font-size-xs);
+    font-size: var(--hph-font-size-s);
     font-weight: 700;
-    color: var(--hph-color-primary-200);
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Features Grid */
@@ -631,7 +632,7 @@
 
 /* Agent Info */
 .hph-agent-card {
-    display: flex;
+    display: grid;
     align-items: center;
     gap: var(--hph-spacing-4);
     background: rgba(255, 255, 255, 0.1);

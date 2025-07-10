@@ -241,17 +241,53 @@ $total_properties = $listings_query->found_posts;
                         <div class="hph-filter-group">
                             <h4 class="hph-filter-title"><?php esc_html_e('Price Range', 'happy-place'); ?></h4>
                             <div class="hph-price-inputs">
-                                <input type="number" 
-                                       name="price_min" 
-                                       placeholder="<?php esc_attr_e('Min Price', 'happy-place'); ?>"
-                                       value="<?php echo esc_attr($current_filters['price_min']); ?>"
-                                       class="hph-price-input">
-                                <span class="hph-price-separator">—</span>
-                                <input type="number" 
-                                       name="price_max" 
-                                       placeholder="<?php esc_attr_e('Max Price', 'happy-place'); ?>"
-                                       value="<?php echo esc_attr($current_filters['price_max']); ?>"
-                                       class="hph-price-input">
+                                <select class="hph-price-select" name="price_min">
+                                    <option value="">Min Price</option>
+                                    <option value="0">$0</option>
+                                    <option value="50000">$50K</option>
+                                    <option value="100000">$100K</option>
+                                    <option value="150000">$150K</option>
+                                    <option value="200000">$200K</option>
+                                    <option value="250000">$250K</option>
+                                    <option value="300000">$300K</option>
+                                    <option value="350000">$350K</option>
+                                    <option value="400000">$400K</option>
+                                    <option value="450000">$450K</option>
+                                    <option value="500000">$500K</option>
+                                    <option value="600000">$600K</option>
+                                    <option value="700000">$700K</option>
+                                    <option value="800000">$800K</option>
+                                    <option value="900000">$900K</option>
+                                    <option value="1000000">$1M</option>
+                                    <option value="1250000">$1.25M</option>
+                                    <option value="1500000">$1.5M</option>
+                                    <option value="1750000">$1.75M</option>
+                                    <option value="2000000">$2M</option>
+                                </select>
+                                <span class="hph-price-separator">to</span>
+                                <select class="hph-price-select" name="price_max">
+                                    <option value="">Max Price</option>
+                                    <option value="50000">$50K</option>
+                                    <option value="100000">$100K</option>
+                                    <option value="150000">$150K</option>
+                                    <option value="200000">$200K</option>
+                                    <option value="250000">$250K</option>
+                                    <option value="300000">$300K</option>
+                                    <option value="350000">$350K</option>
+                                    <option value="400000">$400K</option>
+                                    <option value="450000">$450K</option>
+                                    <option value="500000">$500K</option>
+                                    <option value="600000">$600K</option>
+                                    <option value="700000">$700K</option>
+                                    <option value="800000">$800K</option>
+                                    <option value="900000">$900K</option>
+                                    <option value="1000000">$1M</option>
+                                    <option value="1250000">$1.25M</option>
+                                    <option value="1500000">$1.5M</option>
+                                    <option value="1750000">$1.75M</option>
+                                    <option value="2000000">$2M</option>
+                                    <option value="2000001">$2M+</option>
+                                </select>
                             </div>
                         </div>
 
@@ -291,22 +327,17 @@ $total_properties = $listings_query->found_posts;
                         <div class="hph-filter-group">
                             <h4 class="hph-filter-title"><?php esc_html_e('Bedrooms', 'happy-place'); ?></h4>
                             <div class="hph-bedroom-options">
+                                <label class="hph-bedroom-option <?php echo empty($current_filters['bedrooms']) ? 'active' : ''; ?>">
+                                    <input type="radio" name="bedrooms" value="" <?php checked(empty($current_filters['bedrooms'])); ?>>
+                                    <span>Any</span>
+                                </label>
                                 <?php for ($i = 1; $i <= 5; $i++) : ?>
                                     <label class="hph-bedroom-option <?php echo $current_filters['bedrooms'] == $i ? 'active' : ''; ?>">
-                                        <input type="radio" 
-                                               name="bedrooms" 
-                                               value="<?php echo $i; ?>" 
+                                        <input type="radio" name="bedrooms" value="<?php echo esc_attr($i); ?>" 
                                                <?php checked($current_filters['bedrooms'], $i); ?>>
-                                        <span><?php echo $i; ?>+</span>
+                                        <span><?php echo $i; ?><?php echo $i == 5 ? '+' : ''; ?></span>
                                     </label>
                                 <?php endfor; ?>
-                                <label class="hph-bedroom-option <?php echo empty($current_filters['bedrooms']) ? 'active' : ''; ?>">
-                                    <input type="radio" 
-                                           name="bedrooms" 
-                                           value="" 
-                                           <?php checked($current_filters['bedrooms'], ''); ?>>
-                                    <span><?php esc_html_e('Any', 'happy-place'); ?></span>
-                                </label>
                             </div>
                         </div>
 
@@ -314,51 +345,39 @@ $total_properties = $listings_query->found_posts;
                         <div class="hph-filter-group">
                             <h4 class="hph-filter-title"><?php esc_html_e('Bathrooms', 'happy-place'); ?></h4>
                             <div class="hph-bathroom-options">
+                                <label class="hph-bathroom-option <?php echo empty($current_filters['bathrooms']) ? 'active' : ''; ?>">
+                                    <input type="radio" name="bathrooms" value="" <?php checked(empty($current_filters['bathrooms'])); ?>>
+                                    <span>Any</span>
+                                </label>
                                 <?php for ($i = 1; $i <= 4; $i++) : ?>
                                     <label class="hph-bathroom-option <?php echo $current_filters['bathrooms'] == $i ? 'active' : ''; ?>">
-                                        <input type="radio" 
-                                               name="bathrooms" 
-                                               value="<?php echo $i; ?>" 
+                                        <input type="radio" name="bathrooms" value="<?php echo esc_attr($i); ?>" 
                                                <?php checked($current_filters['bathrooms'], $i); ?>>
-                                        <span><?php echo $i; ?>+</span>
+                                        <span><?php echo $i; ?><?php echo $i == 4 ? '+' : ''; ?></span>
                                     </label>
                                 <?php endfor; ?>
-                                <label class="hph-bathroom-option <?php echo empty($current_filters['bathrooms']) ? 'active' : ''; ?>">
-                                    <input type="radio" 
-                                           name="bathrooms" 
-                                           value="" 
-                                           <?php checked($current_filters['bathrooms'], ''); ?>>
-                                    <span><?php esc_html_e('Any', 'happy-place'); ?></span>
-                                </label>
                             </div>
                         </div>
 
                         <!-- Features -->
                         <div class="hph-filter-group">
                             <h4 class="hph-filter-title"><?php esc_html_e('Features', 'happy-place'); ?></h4>
-                            <div class="hph-features-checkboxes">
+                            <div class="hph-features-options">
                                 <?php 
-                                $available_features = [
-                                    'pool' => __('Swimming Pool', 'happy-place'),
-                                    'garage' => __('Garage', 'happy-place'),
-                                    'fireplace' => __('Fireplace', 'happy-place'),
-                                    'deck_patio' => __('Deck/Patio', 'happy-place'),
-                                    'basement' => __('Basement', 'happy-place'),
-                                    'hardwood_floors' => __('Hardwood Floors', 'happy-place'),
-                                    'updated_kitchen' => __('Updated Kitchen', 'happy-place'),
-                                    'walk_in_closet' => __('Walk-in Closet', 'happy-place')
-                                ];
-                                
-                                foreach ($available_features as $feature_key => $feature_label) :
-                                    $checked = in_array($feature_key, $current_filters['features']);
+                                $features = array(
+                                    'pool' => 'Pool',
+                                    'garage' => 'Garage',
+                                    'fireplace' => 'Fireplace',
+                                    'waterfront' => 'Waterfront',
+                                    'view' => 'View',
+                                    'basement' => 'Basement'
+                                );
                                 ?>
-                                    <label class="hph-feature-checkbox">
-                                        <input type="checkbox" 
-                                               name="features[]" 
-                                               value="<?php echo esc_attr($feature_key); ?>"
-                                               <?php checked($checked, true); ?>>
-                                        <span class="hph-checkmark"></span>
-                                        <span class="hph-feature-label"><?php echo esc_html($feature_label); ?></span>
+                                <?php foreach ($features as $key => $label) : ?>
+                                    <label class="hph-feature-option hph-button-option <?php echo in_array($key, (array)$current_filters['features']) ? 'active' : ''; ?>">
+                                        <input type="checkbox" name="features[]" value="<?php echo esc_attr($key); ?>" 
+                                               <?php checked(in_array($key, (array)$current_filters['features'])); ?>>
+                                        <span><?php echo esc_html($label); ?></span>
                                     </label>
                                 <?php endforeach; ?>
                             </div>

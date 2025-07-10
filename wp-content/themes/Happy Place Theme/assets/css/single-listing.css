@@ -943,57 +943,259 @@ input[type="range"]::-moz-range-thumb {
     margin-top: var(--hph-spacing-6);
 }
 
-/* Media Queries */
-@media (max-width: 1024px) {
-    .hph-similar-listings-grid {
-        grid-template-columns: repeat(2, 1fr);
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .hph-listing-content-wrapper {
+        grid-template-columns: 1.5fr 1fr;
+        gap: var(--hph-spacing-6);
     }
-    
-    .hph-payment-details {
+
+    .hph-property-details-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hph-gallery-grid {
+        grid-template-rows: 180px 180px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hph-listing-hero {
+        height: 60vh;
+    }
+
+    .hph-listing-title {
+        font-size: var(--hph-font-size-3xl);
+    }
+
+    .hph-listing-hero-stats {
+        flex-wrap: wrap;
+    }
+
+    .hph-listing-hero-stats span {
+        font-size: var(--hph-font-size-base);
+    }
+
+    .hph-listing-content-wrapper {
+        grid-template-columns: 1fr;
+        gap: var(--hph-spacing-8);
+    }
+
+    .hph-listing-sidebar {
+        display: grid;
         grid-template-columns: repeat(2, 1fr);
+        gap: var(--hph-spacing-6);
+    }
+
+    .hph-agent-card {
+        grid-column: span 2;
+    }
+
+    .hph-gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 250px 150px 150px;
+    }
+
+    .hph-gallery-main {
+        grid-column: 1 / -1;
+        grid-row: 1;
     }
 }
 
 @media (max-width: 768px) {
-    .hph-similar-listings-grid {
-        grid-template-columns: 1fr;
+    .hph-listing-hero {
+        height: 50vh;
     }
-    
-    .hph-calculator-results {
-        padding: var(--hph-spacing-4);
+
+    .hph-listing-hero-overlay {
+        padding: var(--hph-spacing-6) var(--hph-spacing-4);
     }
-    
-    .hph-payment-details {
-        grid-template-columns: 1fr;
+
+    .hph-listing-actions {
+        flex-direction: column;
+        gap: var(--hph-spacing-3);
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .hph-listing-actions button {
+        width: 100%;
+    }
+
+    .hph-property-details-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: var(--hph-spacing-3);
     }
-    
-    .hph-monthly-payment {
-        font-size: var(--hph-font-size-xl);
+
+    .hph-listing-features ul {
+        columns: 1;
+    }
+
+    .hph-listing-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .hph-agent-card {
+        grid-column: span 1;
+    }
+
+    .hph-gallery-modal-content {
+        padding: var(--hph-spacing-4);
+    }
+
+    .hph-gallery-nav {
+        width: 40px;
+        height: 40px;
+        font-size: var(--hph-font-size-lg);
+    }
+
+    .hph-gallery-prev {
+        left: var(--hph-spacing-4);
+    }
+
+    .hph-gallery-next {
+        right: var(--hph-spacing-4);
+    }
+
+    .hph-gallery-modal-thumbs {
+        padding: var(--hph-spacing-4) 0 0;
+    }
+
+    .hph-gallery-thumb {
+        width: 80px;
+        height: 60px;
     }
 }
 
-/* Print Styles */
+@media (max-width: 480px) {
+    .hph-listing-hero {
+        height: 40vh;
+    }
+
+    .hph-listing-title {
+        font-size: var(--hph-font-size-2xl);
+    }
+
+    .hph-listing-price {
+        font-size: var(--hph-font-size-2xl);
+    }
+
+    .hph-listing-hero-stats span {
+        font-size: var(--hph-font-size-sm);
+        padding: var(--hph-spacing-2) var(--hph-spacing-3);
+    }
+
+    .hph-gallery-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 200px repeat(3, 120px);
+    }
+
+    .hph-property-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hph-property-detail {
+        padding: var(--hph-spacing-3);
+    }
+
+    .hph-property-detail-value {
+        font-size: var(--hph-font-size-base);
+    }
+
+    .hph-nearby-places-buttons {
+        flex-direction: column;
+    }
+
+    .hph-nearby-places-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .hph-virtual-tour-container {
+        padding-bottom: 75%; /* 4:3 aspect ratio for better mobile viewing */
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+    .hph-card:hover {
+        transform: none;
+        box-shadow: var(--hph-shadow-sm);
+    }
+
+    .hph-gallery-item:hover {
+        transform: none;
+    }
+
+    .hph-gallery-item:hover img {
+        transform: none;
+    }
+
+    .hph-gallery-item:active {
+        opacity: 0.8;
+    }
+
+    .hph-property-detail:hover {
+        transform: none;
+    }
+
+    .hph-agent-card:hover .hph-agent-image {
+        transform: none;
+    }
+
+    /* Increase touch targets for better mobile interaction */
+    .hph-gallery-nav,
+    .hph-nearby-places-btn,
+    .hph-gallery-modal-close {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+/* Tablet Specific Optimizations */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    .hph-listing-hero {
+        height: 70vh;
+    }
+
+    .hph-listing-content-wrapper {
+        grid-template-columns: 1fr 400px;
+    }
+
+    .hph-listing-sidebar {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Print Styles Enhancement */
 @media print {
-    .hph-calculator-form,
-    .hph-contact-form-card,
-    .hph-similar-listings {
+    .hph-listing-hero {
+        height: auto;
+        page-break-inside: avoid;
+    }
+
+    .hph-listing-content-wrapper {
+        grid-template-columns: 1fr;
+        gap: var(--hph-spacing-6);
+    }
+
+    .hph-listing-actions,
+    .hph-gallery-modal,
+    .hph-virtual-tour-section,
+    .hph-nearby-places-buttons {
         display: none;
     }
-    
-    .hph-calculator-results {
-        break-inside: avoid;
-        background: none;
-        border: 1px solid var(--hph-color-gray-300);
-    }
-}
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    .hph-range-thumb,
-    .hph-input-group input,
-    .hph-form-group input,
-    .hph-form-group textarea {
-        transition: none;
+    .hph-card {
+        box-shadow: none;
+        border: 1px solid var(--hph-color-gray-300);
+        break-inside: avoid;
+    }
+
+    .hph-property-map {
+        height: 300px;
+        break-inside: avoid;
     }
 }

@@ -240,17 +240,21 @@ $total_properties = $listings_query->found_posts;
                         <div class="hph-filter-group">
                             <h4 class="hph-filter-title"><?php esc_html_e('Price Range', 'happy-place'); ?></h4>
                             <div class="hph-price-inputs">
-                                <input type="number" 
-                                       name="price_min" 
-                                       placeholder="<?php esc_attr_e('Min Price', 'happy-place'); ?>"
-                                       value="<?php echo esc_attr($current_filters['price_min']); ?>"
-                                       class="hph-price-input">
-                                <span class="hph-price-separator">—</span>
-                                <input type="number" 
-                                       name="price_max" 
-                                       placeholder="<?php esc_attr_e('Max Price', 'happy-place'); ?>"
-                                       value="<?php echo esc_attr($current_filters['price_max']); ?>"
-                                       class="hph-price-input">
+                                <select class="hph-price-select">
+                                    <option value=""><?php esc_html_e('Min Price', 'happy-place'); ?></option>
+                                    <option value="0">$0</option>
+                                    <option value="50000">$50,000</option>
+                                    <option value="100000">$100,000</option>
+                                    <!-- Continue in $50k increments -->
+                                </select>
+                                <span class="hph-price-separator"><?php esc_html_e('to', 'happy-place'); ?></span>
+                                <select class="hph-price-select">
+                                    <option value=""><?php esc_html_e('Max Price', 'happy-place'); ?></option>
+                                    <option value="50000">$50,000</option>
+                                    <option value="100000">$100,000</option>
+                                    <option value="150000">$150,000</option>
+                                    <!-- Continue in $50k increments -->
+                                </select>
                             </div>
                         </div>
 
