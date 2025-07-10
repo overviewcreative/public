@@ -34,8 +34,10 @@ $lot_size = get_field('lot_size', $listing_id);
 $property_type = get_field('property_type', $listing_id);
 $status = get_field('status', $listing_id);
 $highlight_badges = get_field('highlight_badges', $listing_id);
-$gallery = get_field('gallery', $listing_id);
-$features = get_field('features', $listing_id);
+$gallery = get_field('photo_gallery', $listing_id);
+$interior_features = get_field('interior_features', $listing_id);
+$exterior_features = get_field('exterior_features', $listing_id);
+$utility_features = get_field('utilitty_features', $listing_id);
 
 // Address fields
 $street_address = get_field('street_address', $listing_id);
@@ -101,12 +103,27 @@ $open_houses = get_posts([
 // Prepare gallery images
 $photos = [];
 if ($gallery && !empty($gallery)) {
-    foreach ($gallery as $image) {
-        $photos[] = [
-            'url' => $image['sizes']['large'] ?? $image['url'],
-            'thumbnail' => $image['sizes']['medium'] ?? $image['url'],
-            'alt' => $image['alt'] ?: get_the_title($listing_id)
-        ];
+    // If gallery is an array of IDs (ACF "Image ID" return format)
+    if (is_array($gallery) && isset($gallery[0]) && is_numeric($gallery[0])) {
+        foreach ($gallery as $image_id) {
+            $large = wp_get_attachment_image_src($image_id, 'large');
+            $medium = wp_get_attachment_image_src($image_id, 'medium');
+            $alt = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+            $photos[] = [
+                'url' => $large ? $large[0] : '',
+                'thumbnail' => $medium ? $medium[0] : '',
+                'alt' => $alt ?: get_the_title($listing_id)
+            ];
+        }
+    } else {
+        // ACF "Image Array" return format
+        foreach ($gallery as $image) {
+            $photos[] = [
+                'url' => $image['sizes']['large'] ?? $image['url'],
+                'thumbnail' => $image['sizes']['medium'] ?? $image['url'],
+                'alt' => $image['alt'] ?: get_the_title($listing_id)
+            ];
+        }
     }
 }
 
@@ -175,6 +192,53 @@ if (!empty($open_houses)) {
 
 if ($agent_id && $agent_name) {
     $info_sections['agent'] = true;
+}
+
+// Get all selected features from the checkbox field
+$interior_features = get_field('interior_features', $listing_id);
+
+// Feature icon mapping (optional)
+$feature_icons = [
+    'pool' => 'fa-solid fa-water-ladder',
+    'garage' => 'fa-solid fa-warehouse',
+    'fireplace' => 'fa-solid fa-fire',
+    'deck_patio' => 'fa-solid fa-table-cells-large',
+    'basement' => 'fa-solid fa-layer-group',
+    'hardwood_floors' => 'fa-solid fa-grip-lines',
+    'updated_kitchen' => 'fa-solid fa-utensils',
+    'walk_in_closet' => 'fa-solid fa-shirt',
+    'central_air' => 'fa-solid fa-fan',
+    'solar_panels' => 'fa-solid fa-solar-panel',
+    'generator' => 'fa-solid fa-bolt',
+    'security_system' => 'fa-solid fa-shield-halved',
+    'smart_home' => 'fa-solid fa-house-signal',
+    // Add more mappings as needed
+];
+
+// Split features into groups
+$interior_keys = ['hardwood_floors', 'updated_kitchen', 'walk_in_closet', 'fireplace', 'basement', 'year_built'];
+$exterior_keys = ['pool', 'garage', 'deck_patio', 'lot_size'];
+$utility_keys = ['central_air', 'solar_panels', 'generator', 'security_system', 'smart_home'];
+
+$interior_features = [];
+$exterior_features = [];
+$utility_features = [];
+
+if (!empty($features) && is_array($features)) {
+    foreach ($features as $feature) {
+        if (in_array($feature, $interior_keys)) {
+            $interior_features[] = $feature;
+        } elseif (in_array($feature, $exterior_keys)) {
+            $exterior_features[] = $feature;
+        } elseif (in_array($feature, $utility_keys)) {
+            $utility_features[] = $feature;
+        }
+    }
+}
+
+// Add utility section if there are utility features
+if (!empty($utility_features)) {
+    $info_sections['utility'] = true;
 }
 
 $total_sections = count($info_sections);
@@ -293,28 +357,40 @@ $total_sections = count($info_sections);
             <div class="hph-property-stats">
                 <?php if ($bedrooms) : ?>
                     <div class="hph-stat-item">
-                        <div class="hph-stat-icon"><?php echo esc_html($bedrooms); ?></div>
+                        <div class="hph-stat-icon">
+                            <i class="<?php echo esc_attr($stat_icons['bedrooms']); ?>"></i>
+                            <?php echo esc_html($bedrooms); ?>
+                        </div>
                         <span><?php echo _n('Bedroom', 'Bedrooms', $bedrooms, 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($bathrooms) : ?>
                     <div class="hph-stat-item">
-                        <div class="hph-stat-icon"><?php echo esc_html($bathrooms); ?></div>
+                        <div class="hph-stat-icon">
+                            <i class="<?php echo esc_attr($stat_icons['bathrooms']); ?>"></i>
+                            <?php echo esc_html($bathrooms); ?>
+                        </div>
                         <span><?php echo _n('Bathroom', 'Bathrooms', $bathrooms, 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($square_footage) : ?>
                     <div class="hph-stat-item">
-                        <div class="hph-stat-icon"><?php echo esc_html(number_format($square_footage/1000, 1)); ?>K</div>
+                        <div class="hph-stat-icon">
+                            <i class="<?php echo esc_attr($stat_icons['square_footage']); ?>"></i>
+                            <?php echo esc_html(number_format($square_footage/1000, 1)); ?>K
+                        </div>
                         <span><?php esc_html_e('Sq Ft', 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
                 
                 <?php if ($lot_size) : ?>
                     <div class="hph-stat-item">
-                        <div class="hph-stat-icon"><?php echo esc_html($lot_size); ?></div>
+                        <div class="hph-stat-icon">
+                            <i class="<?php echo esc_attr($stat_icons['lot_size']); ?>"></i>
+                            <?php echo esc_html($lot_size); ?>
+                        </div>
                         <span><?php esc_html_e('Acres', 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
@@ -336,27 +412,23 @@ $total_sections = count($info_sections);
         <div class="hph-info-section hph-info-section--interior" data-section="interior">
             <h3 class="hph-section-title"><?php esc_html_e('Interior Features', 'happy-place'); ?></h3>
             <div class="hph-features-grid">
-                <?php if (!empty($features) && is_array($features)) : ?>
-                    <?php 
-                    $interior_features = array_slice($features, 0, 6);
-                    foreach ($interior_features as $feature) : ?>
-                        <div class="hph-feature-item">
-                            <div class="hph-feature-icon"><?php echo esc_html(strtoupper(substr($feature, 0, 1))); ?></div>
-                            <span><?php echo esc_html($feature); ?></span>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-                
+                <?php foreach ($interior_features as $features) : 
+                    $icon_class = $feature_icons[$feature] ?? 'fa-solid fa-star';
+                ?>
+                    <div class="hph-feature-item">
+                        <div class="hph-feature-icon"><i class="<?php echo esc_attr($icon_class); ?>"></i></div>
+                        <span><?php echo esc_html($feature); ?></span>
+                    </div>
+                <?php endforeach; ?>
                 <?php if ($year_built) : ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">Y</div>
+                        <div class="hph-feature-icon"><i class="fa-solid fa-calendar"></i></div>
                         <span><?php echo sprintf(__('Built in %d', 'happy-place'), $year_built); ?></span>
                     </div>
                 <?php endif; ?>
-                
-                <?php if ($basement) : ?>
+                <?php if ($basement && !in_array('basement', $interior_features)) : ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">B</div>
+                        <div class="hph-feature-icon"><i class="fa-solid fa-layer-group"></i></div>
                         <span><?php esc_html_e('Basement', 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
@@ -371,43 +443,44 @@ $total_sections = count($info_sections);
             </div>
         </div>
         <?php endif; ?>
-        
+
         <!-- Exterior Features -->
         <?php if ($info_sections['exterior']) : ?>
         <div class="hph-info-section hph-info-section--exterior" data-section="exterior">
             <h3 class="hph-section-title"><?php esc_html_e('Exterior & Amenities', 'happy-place'); ?></h3>
             <div class="hph-features-grid">
-                <?php if ($garage) : ?>
+                <?php foreach ($exterior_features as $exterior_feature) : 
+                    $icon_class = $feature_icons[$feature] ?? 'fa-solid fa-star';
+                ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">G</div>
+                        <div class="hph-feature-icon"><i class="<?php echo esc_attr($icon_class); ?>"></i></div>
+                        <span><?php echo esc_html($feature); ?></span>
+                    </div>
+                <?php endforeach; ?>
+                <?php if ($garage && !in_array('garage', $exterior_features)) : ?>
+                    <div class="hph-feature-item">
+                        <div class="hph-feature-icon"><i class="fa-solid fa-warehouse"></i></div>
                         <span><?php echo sprintf(__('%d-Car Garage', 'happy-place'), $garage); ?></span>
                     </div>
                 <?php endif; ?>
-                
-                <?php if ($pool) : ?>
+                <?php if ($pool && !in_array('pool', $exterior_features)) : ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">P</div>
+                        <div class="hph-feature-icon"><i class="fa-solid fa-water-ladder"></i></div>
                         <span><?php esc_html_e('Swimming Pool', 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
-                
-                <?php if ($fireplace) : ?>
+                <?php 
+                // Check for specific checkbox option
+                $has_deck_patio = in_array('deck_patio', $exterior_features);
+                if ($has_deck_patio) : ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">F</div>
-                        <span><?php esc_html_e('Fireplace', 'happy-place'); ?></span>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($deck_patio) : ?>
-                    <div class="hph-feature-item">
-                        <div class="hph-feature-icon">D</div>
+                        <div class="hph-feature-icon"><i class="fa-solid fa-table-cells-large"></i></div>
                         <span><?php esc_html_e('Deck/Patio', 'happy-place'); ?></span>
                     </div>
                 <?php endif; ?>
-                
-                <?php if ($lot_size) : ?>
+                <?php if ($lot_size && !in_array('lot_size', $exterior_features)) : ?>
                     <div class="hph-feature-item">
-                        <div class="hph-feature-icon">L</div>
+                        <div class="hph-feature-icon"><i class="fa-solid fa-tree"></i></div>
                         <span><?php echo sprintf(__('%s Acre Lot', 'happy-place'), $lot_size); ?></span>
                     </div>
                 <?php endif; ?>
@@ -423,6 +496,31 @@ $total_sections = count($info_sections);
         </div>
         <?php endif; ?>
         
+        <!-- Utility & Systems Features -->
+        <?php if (!empty($info_sections['utility'])) : ?>
+        <div class="hph-info-section hph-info-section--utility" data-section="utility">
+            <h3 class="hph-section-title"><?php esc_html_e('Utility & Systems', 'happy-place'); ?></h3>
+            <div class="hph-features-grid">
+                <?php foreach ($utility_features as $feature) : 
+                    $icon_class = $feature_icons[$feature] ?? 'fa-solid fa-star';
+                ?>
+                    <div class="hph-feature-item">
+                        <div class="hph-feature-icon"><i class="<?php echo esc_attr($icon_class); ?>"></i></div>
+                        <span><?php echo esc_html($feature); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="hph-quick-actions">
+                <button class="hph-quick-action-btn hph-calculator-btn">
+                    <i class="fas fa-calculator"></i> <?php esc_html_e('Calculator', 'happy-place'); ?>
+                </button>
+                <button class="hph-quick-action-btn hph-quick-action-btn--primary hph-preapproval-btn">
+                    <i class="fas fa-check-circle"></i> <?php esc_html_e('Get Pre-approved', 'happy-place'); ?>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Neighborhood Info -->
         <?php if ($info_sections['neighborhood']) : ?>
         <div class="hph-info-section hph-info-section--neighborhood" data-section="neighborhood">
@@ -609,6 +707,25 @@ $total_sections = count($info_sections);
                         <?php esc_html_e('Call Now', 'happy-place'); ?>
                     </a>
                 <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <!-- Features Slide (show all selected) -->
+        <?php if (!empty($features) && is_array($features)) : ?>
+        <div class="hph-info-section hph-info-section--features" data-section="features">
+            <h3 class="hph-section-title"><?php esc_html_e('Features', 'happy-place'); ?></h3>
+            <div class="hph-features-grid">
+                <?php foreach ($interior_features as $feature) : 
+                    $icon_class = $feature_icons[$feature] ?? '';
+                ?>
+                    <div class="hph-feature-item">
+                        <?php if ($icon_class): ?>
+                            <div class="hph-feature-icon"><i class="<?php echo esc_attr($icon_class); ?>"></i></div>
+                        <?php endif; ?>
+                        <span><?php echo esc_html($feature); ?></span>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
         <?php endif; ?>

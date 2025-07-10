@@ -573,15 +573,29 @@ function hph_add_query_vars($vars) {
 add_filter('query_vars', 'hph_add_query_vars');
 
 function happyplace_enqueue_assets() {
- 
-    wp_enqueue_style('happyplace-main', get_template_directory_uri() . '/assets/css/main.css', [], '1.0');
-    wp_enqueue_style('happyplace-archive-listing', get_template_directory_uri() . '/assets/css/archive-listing.css', [], '1.0');
-    wp_enqueue_style('happyplace-listing-swipe-card', get_template_directory_uri() . '/assets/css/cards/listing-swipe-card.css', [], '1.0');
-    wp_enqueue_style('happyplace-single-listing', get_template_directory_uri() . '/assets/css/single-listing', [], '1.0');
-    wp_enqueue_script('happyplace-listing-swipe', get_template_directory_uri() . '/assets/js/listing-swipe-card.js', ['jquery'], '1.0', true);
-    wp_enqueue_script('happyplace-archive-listing', get_template_directory_uri() . '/assets/js/archive-listing.js', ['jquery'], '1.0', true);
-    wp_enqueue_script('happyplace-single-listing', get_template_directory_uri() . '/assets/js/single-listing.js', ['jquery'], '1.0', true);
+    $theme_version = '1.0';
+    $theme_uri = get_template_directory_uri();
+    $fa_version = '6.4.2'; // Font Awesome version
 
-    wp_enqueue_style('happyplace-main', get_template_directory_uri() . '/assets/css/main.css', [], '1.0');}
+    // Font Awesome
+    wp_enqueue_style('font-awesome', 
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/{$fa_version}/css/all.min.css",
+        [],
+        $fa_version
+    );
+
+    // Core styles
+    wp_enqueue_style('happyplace-main', $theme_uri . 'style.css', ['font-awesome'], $theme_version);
+
+    // Listing related styles
+    wp_enqueue_style('happyplace-archive-listing', $theme_uri . '/assets/css/archive-listing.css', ['happyplace-main'], $theme_version);
+    wp_enqueue_style('happyplace-listing-swipe-card', $theme_uri . '/assets/css/listing-swipe-card.css', ['happyplace-main'], $theme_version);
+    wp_enqueue_style('happyplace-single-listing', $theme_uri . '/assets/css/single-listing.css', ['happyplace-main'], $theme_version);
+
+    // Listing related scripts
+    wp_enqueue_script('happyplace-listing-swipe', $theme_uri . '/assets/js/listing-swipe-card.js', ['jquery'], $theme_version, true);
+    wp_enqueue_script('happyplace-archive-listing', $theme_uri . '/assets/js/archive-listing.js', ['jquery'], $theme_version, true);
+    wp_enqueue_script('happyplace-single-listing', $theme_uri . '/assets/js/single-listing.js', ['jquery'], $theme_version, true);
+}
 
 add_action('wp_enqueue_scripts', 'happyplace_enqueue_assets');
