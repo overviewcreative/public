@@ -14,7 +14,6 @@
     max-height: 600px;
     overflow: hidden;
     margin-bottom: var(--hph-spacing-12);
-    border-radius: var(--hph-radius-2xl);
     box-shadow: var(--hph-shadow-primary);
 }
 
@@ -207,6 +206,7 @@
     color: var(--hph-color-white);
     font-weight: var(--hph-font-semibold);
     border-radius: var(--hph-radius-lg);
+    padding: var(--hph-spacing-2);
     cursor: pointer;
     transition: background-color var(--hph-transition-fast);
     backdrop-filter: blur(4px);

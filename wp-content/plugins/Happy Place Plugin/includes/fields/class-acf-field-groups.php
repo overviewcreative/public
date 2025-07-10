@@ -43,6 +43,9 @@ class ACF_Field_Groups {
         add_action('admin_init', [$this, 'ensure_acf_json_directory']);
         add_filter('acf/settings/load_paths', [$this, 'add_acf_json_sync_locations']);
         
+        // Add address field monitoring
+        add_action('acf/save_post', [$this, 'maybe_trigger_geocoding'], 20);
+        
         // Allow other parts of the code to hook into field group registration
         do_action('happy_place_acf_init', $this);
     }
@@ -163,6 +166,31 @@ class ACF_Field_Groups {
         // Add plugin directory as a sync location
         $paths[] = plugin_dir_path(__FILE__) . 'acf-json/';
         return $paths;
+    }
+
+    /**
+     * Trigger geocoding when address fields change
+     */
+    public function maybe_trigger_geocoding($post_id) {
+        if (get_post_type($post_id) !== 'listing') {
+            return;
+        }
+
+        $listing = new \HappyPlace\Models\Listing($post_id);
+        $listing->maybe_geocode_address($post_id, get_post($post_id), true);
+    }
+
+    /**
+     * Trigger geocoding when address fields are saved
+     */
+    public function trigger_geocoding($post_id) {
+        // Only handle listing post type
+        if (get_post_type($post_id) !== 'listing') {
+            return;
+        }
+
+        $listing = new \HappyPlace\Models\Listing($post_id);
+        $listing->maybe_geocode_address($post_id, get_post($post_id), true);
     }
 }
 

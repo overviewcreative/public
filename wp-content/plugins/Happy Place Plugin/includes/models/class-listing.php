@@ -84,47 +84,92 @@ class Listing {
 
     /**
      * Maybe geocode address when listing is saved
-     *
-     * @param int $post_id The post ID
-     * @param \WP_Post $post The post object
-     * @param bool $update Whether this is an existing post being updated
      */
     public function maybe_geocode_address( $post_id, $post, $update ): void {
-        // Skip autosaves
-        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        error_log('Geocoding attempt for listing #' . $post_id);
+
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            error_log('Skipping geocode - autosave');
             return;
         }
 
-        // Skip revisions
-        if ( wp_is_post_revision( $post_id ) ) {
+        // Get ACF field values
+        $street = get_field('street_address', $post_id);
+        $city = get_field('city', $post_id);
+        $state = get_field('region', $post_id);
+        $zip = get_field('zip_code', $post_id);
+
+        $address = implode(' ', array_filter([$street, $city, $state, $zip]));
+
+        if (empty($address)) {
+            error_log('No address to geocode');
             return;
         }
 
-        // Verify post type
-        if ( 'listing' !== $post->post_type ) {
+        error_log('Attempting to geocode address: ' . $address);
+
+        $api_key = get_option('hph_google_maps_api_key');
+        if (!$api_key) {
+            error_log('No Google Maps API key found');
             return;
         }
 
-        // Get the full address
-        $street = get_post_meta( $post_id, '_listing_address', true );
-        $city = get_post_meta( $post_id, '_listing_city', true );
-        $state = get_post_meta( $post_id, '_listing_state', true );
-        $zip = get_post_meta( $post_id, '_listing_zip', true );
+        $url = add_query_arg([
+            'address' => urlencode($address),
+            'key' => $api_key
+        ], 'https://maps.googleapis.com/maps/api/geocode/json');
 
-        // Build full address
-        $full_address = implode( ' ', array_filter( [ $street, $city, $state, $zip ] ) );
-
-        if ( empty( $full_address ) ) {
+        $response = wp_remote_get($url);
+        if (is_wp_error($response)) {
+            error_log('Geocoding API error: ' . $response->get_error_message());
             return;
         }
 
-        // Try to geocode the address
-        $location = \HappyPlace\hph_geocode_address( $full_address );
-
-        if ( $location && isset( $location['latitude'], $location['longitude'] ) ) {
-            update_post_meta( $post_id, '_listing_latitude', $location['latitude'] );
-            update_post_meta( $post_id, '_listing_longitude', $location['longitude'] );
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($data['status'] !== 'OK' || empty($data['results'][0]['geometry']['location'])) {
+            error_log('Geocoding failed. Status: ' . $data['status']);
+            return;
         }
+
+        $location = $data['results'][0]['geometry']['location'];
+        
+        // Validate coordinates
+        if (!is_numeric($location['lat']) || !is_numeric($location['lng'])) {
+            error_log('Invalid coordinates received');
+            return;
+        }
+
+        // Round coordinates to 6 decimal places for consistency
+        $lat = round((float)$location['lat'], 6);
+        $lng = round((float)$location['lng'], 6);
+        
+        error_log('Geocoding successful. Updating lat/lng fields.');
+
+        // Update ACF fields - make sure these match your ACF field names exactly
+        update_field('field_latitude', $lat, $post_id);  // Use your actual field key
+        update_field('field_longitude', $lng, $post_id); // Use your actual field key
+        update_field('field_formatted_address', $data['results'][0]['formatted_address'], $post_id);
+
+        // Store in post meta as backup
+        update_post_meta($post_id, '_listing_latitude', $lat);
+        update_post_meta($post_id, '_listing_longitude', $lng);
+        
+        error_log(sprintf(
+            'Updated coordinates to: %f, %f',
+            $lat,
+            $lng
+        ));
+
+        // Verify the save worked
+        $saved_lat = get_field('field_latitude', $post_id);
+        $saved_lng = get_field('field_longitude', $post_id);
+        
+        error_log(sprintf(
+            'Verified saved coordinates: %s, %s',
+            $saved_lat,
+            $saved_lng
+        ));
     }
 
     /**

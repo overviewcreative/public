@@ -478,7 +478,36 @@ $total_properties = $listings_query->found_posts;
                         <?php if ($current_filters['view_mode'] === 'map') : ?>
                             <!-- Map View -->
                             <div class="hph-map-container">
-                                <div id="listingsMap" class="hph-listings-map"></div>
+                                <div id="listingsMap" 
+                                     class="hph-listings-map"
+                                     data-markers='<?php
+                                        $markers = [];
+                                        while ($listings_query->have_posts()) {
+                                            $listings_query->the_post();
+                                            $lat = get_field('latitude');
+                                            $lng = get_field('longitude');
+                                            if ($lat && $lng) {
+                                                $markers[] = [
+                                                    'id' => get_the_ID(),
+                                                    'lat' => floatval($lat),
+                                                    'lng' => floatval($lng),
+                                                    'title' => get_the_title(),
+                                                    'price' => get_field('price'),
+                                                    'address' => get_field('full_address'),
+                                                    'beds' => get_field('bedrooms'),
+                                                    'baths' => get_field('bathrooms'),
+                                                    'sqft' => get_field('square_footage'),
+                                                    'image' => get_the_post_thumbnail_url(get_the_ID(), 'medium'),
+                                                    'url' => get_permalink()
+                                                ];
+                                            }
+                                        }
+                                        wp_reset_postdata();
+                                        echo esc_attr(json_encode($markers));
+                                     ?>'
+                                     data-clusterer="true"
+                                     data-fit-bounds="true">
+                                </div>
                                 <div class="hph-map-listings">
                                     <?php while ($listings_query->have_posts()) : $listings_query->the_post(); ?>
                                         <div class="hph-map-listing-card" data-listing-id="<?php echo get_the_ID(); ?>">

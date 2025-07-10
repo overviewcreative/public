@@ -22,6 +22,7 @@ $current_filters = [
     'bathrooms' => isset($_GET['bathrooms']) ? absint($_GET['bathrooms']) : '',
     'property_type' => isset($_GET['property_type']) ? sanitize_text_field($_GET['property_type']) : '',
     'location' => isset($_GET['location']) ? sanitize_text_field($_GET['location']) : '',
+    'latitude' => isset($_GET['latitude']) ? sanitize_text_field($_GET['latitude']) : '',
     'features' => isset($_GET['features']) ? array_map('sanitize_text_field', (array)$_GET['features']) : [],
     'sort_by' => isset($_GET['sort_by']) ? sanitize_text_field($_GET['sort_by']) : 'date',
     'view_mode' => isset($_GET['view_mode']) ? sanitize_text_field($_GET['view_mode']) : 'cards',
@@ -481,7 +482,11 @@ $total_properties = $listings_query->found_posts;
                                 <div id="listingsMap" class="hph-listings-map"></div>
                                 <div class="hph-map-listings">
                                     <?php while ($listings_query->have_posts()) : $listings_query->the_post(); ?>
-                                        <div class="hph-map-listing-card" data-listing-id="<?php echo get_the_ID(); ?>">
+                                        <div class="hph-map-listing-card" 
+                                             data-listing-id="<?php echo get_the_ID(); ?>"
+                                             data-latitude="<?php echo get_field('latitude'); ?>"
+                                             data-longitude="<?php echo get_field('longitude'); ?>"
+                                             data-title="<?php echo get_the_title(); ?>">
                                             <?php 
                                             get_template_part('template-parts/cards/listing-swipe-card', null, [
                                                 'post_id' => get_the_ID(),

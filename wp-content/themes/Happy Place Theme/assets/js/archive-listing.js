@@ -296,23 +296,151 @@ class HPHListingsArchive {
     }
     
     switchView(viewMode) {
+        const resultsContent = document.querySelector('.hph-results-content');
+        if (!resultsContent) return;
+
         // Update active view button
         this.viewButtons.forEach(btn => {
             btn.classList.remove('active');
+            if (btn.getAttribute('href').includes(`view_mode=${viewMode}`)) {
+                btn.classList.add('active');
+            }
         });
-        
-        const activeBtn = document.querySelector(`[href*="view_mode=${viewMode}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-        }
-        
+
+        // Remove existing view classes
+        resultsContent.classList.remove('view-grid', 'view-list', 'view-map');
+        resultsContent.classList.add(`view-${viewMode}`);
+
         // Handle map view initialization
         if (viewMode === 'map') {
+            // Create map container if it doesn't exist
+            let mapContainer = document.getElementById('listingsMap');
+            if (!mapContainer) {
+                mapContainer = document.createElement('div');
+                mapContainer.id = 'listingsMap';
+                mapContainer.className = 'hph-listings-map';
+                
+                const mapWrapper = document.createElement('div');
+                mapWrapper.className = 'hph-map-container';
+                mapWrapper.appendChild(mapContainer);
+                
+                // Create listings sidebar
+                const listingsSidebar = document.createElement('div');
+                listingsSidebar.className = 'hph-map-listings';
+                mapWrapper.appendChild(listingsSidebar);
+
+                // Move existing listing cards to sidebar
+                const existingCards = document.querySelectorAll('.hph-listing-card-wrapper');
+                existingCards.forEach(card => {
+                    listingsSidebar.appendChild(card.cloneNode(true));
+                });
+
+                resultsContent.innerHTML = '';
+                resultsContent.appendChild(mapWrapper);
+            }
+
+            // Initialize map with delay to ensure container is visible
             setTimeout(() => {
-                this.initializeMap();
+                this.initializeMapView(mapContainer);
             }, 100);
         }
     }
+
+    initializeMapView(mapContainer) {
+        if (!mapContainer || typeof google === 'undefined') return;
+
+        const markers = [];
+        const bounds = new google.maps.LatLngBounds();
+        const map = new google.maps.Map(mapContainer, {
+            zoom: 12,
+            mapTypeControl: false,
+            streetViewControl: true,
+            fullscreenControl: true,
+            styles: this.mapStyles
+        });
+
+        // Get coordinates from listing cards
+        document.querySelectorAll('.hph-listing-card-wrapper').forEach(card => {
+            const lat = parseFloat(card.dataset.lat);
+            const lng = parseFloat(card.dataset.lng);
+            
+            if (lat && lng) {
+                const position = { lat, lng };
+                bounds.extend(position);
+
+                const marker = new google.maps.Marker({
+                    position,
+                    map,
+                    animation: google.maps.Animation.DROP,
+                    icon: window.happyplace?.markerIcon || null
+                });
+
+                // Create info window content
+                const price = card.querySelector('.hph-listing-price')?.textContent;
+                const title = card.querySelector('.hph-listing-title')?.textContent;
+                const link = card.querySelector('a')?.getAttribute('href');
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="hph-map-info">
+                            <h4>${title || ''}</h4>
+                            <p class="hph-map-info-price">${price || ''}</p>
+                            ${link ? `<a href="${link}" class="hph-btn hph-btn-primary">View Details</a>` : ''}
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    // Close other info windows
+                    markers.forEach(m => m.infoWindow?.close());
+                    infoWindow.open(map, marker);
+                    
+                    // Highlight corresponding card
+                    this.highlightMapListing(card);
+                });
+
+                markers.push({ marker, infoWindow, card });
+            }
+        });
+
+        // Fit map to bounds if we have markers
+        if (markers.length) {
+            map.fitBounds(bounds);
+            // Adjust zoom if too far out
+            const listener = google.maps.event.addListener(map, 'idle', () => {
+                if (map.getZoom() > 16) map.setZoom(16);
+                google.maps.event.removeListener(listener);
+            });
+        }
+
+        // Store map instance for later use
+        this.map = map;
+        this.markers = markers;
+    }
+
+    // Map styles property
+    mapStyles = [
+        {
+            featureType: "administrative",
+            elementType: "labels",
+            stylers: [{ visibility: "on" }]
+        },
+        {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [{ visibility: "off" }]
+        },
+        {
+            featureType: "water",
+            elementType: "labels",
+            stylers: [{ visibility: "on" }]
+        },
+        {
+            featureType: "road",
+            elementType: "labels",
+            stylers: [{ visibility: "on" }]
+        }
+    ]
     
     initializeMap() {
         const mapContainer = document.getElementById('listingsMap');
@@ -342,18 +470,25 @@ class HPHListingsArchive {
     }
     
     addMapMarker(map, listingId, listingElement) {
-        // Placeholder coordinates - you'd get these from your listing data
-        const lat = 39.7391536 + (Math.random() - 0.5) * 0.1;
-        const lng = -75.5397878 + (Math.random() - 0.5) * 0.1;
+        // Get coordinates from data attributes
+        const lat = parseFloat(listingElement.dataset.latitude);
+        const lng = parseFloat(listingElement.dataset.longitude);
         
+        // Validate coordinates
+        if (isNaN(lat) || isNaN(lng)) {
+            console.warn(`Invalid coordinates for listing ${listingId}`);
+            return;
+        }
+
         const marker = new google.maps.Marker({
             position: { lat, lng },
             map: map,
-            title: `Listing ${listingId}`
+            title: listingElement.dataset.title || `Listing ${listingId}`,
+            animation: google.maps.Animation.DROP,
+            icon: window.happyplace?.markerIcon || null
         });
         
         marker.addListener('click', () => {
-            // Highlight corresponding listing card
             this.highlightMapListing(listingElement);
         });
     }

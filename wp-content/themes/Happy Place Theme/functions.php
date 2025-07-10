@@ -108,7 +108,43 @@ class HPH_Theme {
         $this->register_assets();
         $this->setup_ajax_handlers();
         $this->register_widgets();
-        $this->setup_cache_tools(); // Add this line
+        $this->setup_cache_tools();
+        $this->register_settings(); // Add this line
+    }
+
+    private function register_settings(): void {
+        add_action('admin_init', function() {
+            register_setting(
+                'general',
+                'hph_google_maps_api_key',
+                [
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'default' => ''
+                ]
+            );
+
+            add_settings_section(
+                'hph_maps_settings',
+                __('Map Settings', 'happy-place'),
+                function() {
+                    echo '<p>' . __('Configure Google Maps integration settings.', 'happy-place') . '</p>';
+                },
+                'general'
+            );
+
+            add_settings_field(
+                'hph_google_maps_api_key',
+                __('Google Maps API Key', 'happy-place'),
+                function() {
+                    $key = get_option('hph_google_maps_api_key');
+                    echo '<input type="text" class="regular-text" name="hph_google_maps_api_key" value="' . esc_attr($key) . '">';
+                    echo '<p class="description">' . __('Enter your Google Maps API key. <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">Get an API key</a>', 'happy-place') . '</p>';
+                },
+                'general',
+                'hph_maps_settings'
+            );
+        });
     }
 
     private function setup_theme(): void {
@@ -123,11 +159,29 @@ class HPH_Theme {
         $this->load_includes();
     }
 
+    public function enqueue_admin_assets(): void {
+        $screen = get_current_screen();
+        if ($screen && $screen->post_type === 'listing') {
+            wp_enqueue_script(
+                'hph-listing-geocode',
+                get_template_directory_uri() . '/assets/js/admin/listing-geocode.js',
+                ['jquery', 'acf-input'],
+                HPH_THEME_VERSION,
+                true
+            );
+
+            wp_localize_script('hph-listing-geocode', 'hphAdmin', [
+                'geocodeNonce' => wp_create_nonce('hph_geocode_nonce')
+            ]);
+        }
+    }
+
     private function load_includes(): void {
         $files = [
             'inc/template-functions.php',
             'inc/template-tags.php',
-            'inc/shortcodes.php'
+            'inc/shortcodes.php',
+            'inc/geocoding.php' // Add this line
         ];
 
         foreach ($files as $file) {
@@ -290,17 +344,22 @@ class HPH_Theme {
             }
         }
 
-        // Property related pages
-        if (is_post_type_archive(['listing', 'openhouse']) || 
-            is_singular(['listing', 'openhouse'])) {
-            wp_enqueue_script('hph-listing', $uri . '/assets/js/listing.js', ['jquery', 'hph-core'], $ver, true);
+        // Map functionality
+        if (is_post_type_archive('listing') || is_singular('listing')) {
+            wp_enqueue_style('hph-maps', $uri . '/assets/css/maps.css', [], $ver);
             
-            // Google Maps integration
             $maps_api_key = get_option('hph_google_maps_api_key', '');
             if ($maps_api_key) {
                 wp_enqueue_script('google-maps', 
-                    "https://maps.googleapis.com/maps/api/js?key={$maps_api_key}", 
+                    "https://maps.googleapis.com/maps/api/js?key={$maps_api_key}&libraries=places", 
                     [], null, true);
+                wp_enqueue_script('markerclusterer',
+                    'https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js',
+                    ['google-maps'], null, true);
+                wp_enqueue_script('hph-maps', 
+                    $uri . '/assets/js/listing-maps.js', 
+                    ['jquery', 'google-maps', 'markerclusterer'], 
+                    $ver, true);
             }
         }
 

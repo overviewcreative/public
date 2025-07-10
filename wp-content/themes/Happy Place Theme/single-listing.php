@@ -138,9 +138,7 @@ $is_favorite = in_array(get_the_ID(), $favorites);
             <!-- Left Column (Main Content) -->
             <div class="hph-listing-main">
                 <!-- Gallery Section -->
-                <div class="hph-card hph-listing-gallery-section">
-                    <h2>Photo Gallery</h2>
-                    
+                <div class="hph-listing-gallery-section">
                     <div class="hph-gallery">
                         <div class="hph-gallery-grid">
                             <?php if ($gallery_images) : ?>
@@ -279,7 +277,11 @@ $is_favorite = in_array(get_the_ID(), $favorites);
                 </div>
                 
                 <!-- Location Section -->
-                <?php if ($latitude && $longitude) : ?>
+                <?php 
+                $latitude = get_field('latitude');
+                $longitude = get_field('longitude');
+                if ($latitude && $longitude) : 
+                ?>
                     <div class="hph-card hph-listing-map">
                         <h2>Location</h2>
                         
@@ -288,7 +290,7 @@ $is_favorite = in_array(get_the_ID(), $favorites);
                              data-lat="<?php echo esc_attr($latitude); ?>" 
                              data-lng="<?php echo esc_attr($longitude); ?>"
                              data-title="<?php echo esc_attr(get_the_title()); ?>"
-                             data-address="<?php echo esc_attr($full_address . ', ' . $city . ', ' . $state . ' ' . $zip); ?>">
+                             data-address="<?php echo esc_attr($full_address); ?>">
                         </div>
                         
                         <div class="hph-nearby-places">
@@ -329,51 +331,156 @@ $is_favorite = in_array(get_the_ID(), $favorites);
             <!-- Right Column (Sidebar) -->
             <div class="hph-listing-sidebar">
                 <!-- Agent Card -->
-                <?php if ($agent_id) : ?>
-                    <?php
-                    $agent = get_post($agent_id);
-                    $agent_name = get_the_title($agent_id);
-                    $agent_image = get_the_post_thumbnail_url($agent_id, 'medium');
-                    $agent_phone = get_field('phone', $agent_id);
-                    $agent_email = get_field('email', $agent_id);
-                    ?>
-                    
+                <?php 
+                // Get agents who manage this listing
+                $args = array(
+                    'post_type' => 'agent',
+                    'posts_per_page' => 1,
+                    'meta_query' => array(
+                        array(
+                            'key' => 'managed_listings',
+                            'value' => '"' . get_the_ID() . '"',
+                            'compare' => 'LIKE'
+                        )
+                    )
+                );
+                
+                $agent_query = new WP_Query($args);
+                
+                if ($agent_query->have_posts()) : 
+                    $agent_query->the_post();
+                    $agent_id = get_the_ID();
+                    // Get agent data with fallbacks
+                    $agent_name = get_the_title();
+                    $profile_photo = get_field('profile_photo');
+                    $agent_image = $profile_photo ? $profile_photo['url'] : '';
+                    $agent_phone = get_field('phone');
+                    $agent_email = get_field('email');
+                    $agent_license = get_field('license_number');
+                    $agent_license_state = get_field('license_state');
+                    $contact_prefs = get_field('contact_preferences');
+                    $service_areas = get_field('service_areas');
+                    $social_links = get_field('social_links');
+                    $certifications = get_field('certifications');
+                ?>
                     <div class="hph-card hph-agent-card">
-                        <div class="hph-agent-image">
-                            <?php if ($agent_image) : ?>
-                                <img src="<?php echo esc_url($agent_image); ?>" alt="<?php echo esc_attr($agent_name); ?>">
-                            <?php else : ?>
-                                <div class="hph-agent-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <div class="hph-agent-info">
-                            <h3 class="hph-agent-name"><?php echo esc_html($agent_name); ?></h3>
-                            <div class="hph-agent-title">Listing Agent</div>
-                            
-                            <div class="hph-agent-contact">
-                                <?php if ($agent_phone) : ?>
-                                    <a href="tel:<?php echo esc_attr($agent_phone); ?>" class="hph-agent-phone">
-                                        <i class="fas fa-phone"></i> <?php echo esc_html($agent_phone); ?>
-                                    </a>
-                                <?php endif; ?>
-                                
-                                <?php if ($agent_email) : ?>
-                                    <a href="mailto:<?php echo esc_attr($agent_email); ?>" class="hph-agent-email">
-                                        <i class="fas fa-envelope"></i> <?php echo esc_html($agent_email); ?>
-                                    </a>
+                        <div class="hph-agent-header">
+                            <div class="hph-agent-image">
+                                <?php if ($agent_image) : ?>
+                                    <img src="<?php echo esc_url($agent_image); ?>" 
+                                         alt="<?php echo esc_attr($agent_name); ?>"
+                                         loading="lazy">
+                                <?php else : ?>
+                                    <div class="hph-agent-placeholder">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             
-                            <a href="<?php echo get_permalink($agent_id); ?>" class="hph-btn hph-btn-outline hph-btn-block">
-                                View Agent Profile
+                            <div class="hph-agent-info">
+                                <h3 class="hph-agent-name"><?php echo esc_html($agent_name); ?></h3>
+                                <div class="hph-agent-meta">
+                                    <?php if ($agent_license) : ?>
+                                        <div class="hph-agent-license">
+                                            License #<?php echo esc_html($agent_license); ?>
+                                            <?php if ($agent_license_state) : ?>
+                                                (<?php echo esc_html(strtoupper($agent_license_state)); ?>)
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($certifications) : ?>
+                                        <div class="hph-agent-certifications">
+                                            <?php foreach ($certifications as $cert) : ?>
+                                                <span class="hph-certification">
+                                                    <?php echo esc_html($cert['name']); ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hph-agent-contact">
+                            <?php 
+                            // Get contact preferences
+                            $contact_prefs = get_field('contact_preferences', $agent_id) ?: [];
+                            $phone = get_field('phone', $agent_id);
+                            $email = get_field('email', $agent_id);
+                            $schedule_link = get_field('schedule_link', $agent_id);
+                            $chat_link = get_field('chat_link', $agent_id);
+                            ?>
+
+                            <?php if ($schedule_link) : ?>
+                                <a href="<?php echo esc_url($schedule_link); ?>" 
+                                   class="hph-btn hph-btn-primary hph-btn-block"
+                                   target="_blank">
+                                    <i class="far fa-calendar-alt"></i> Schedule Showing
+                                </a>
+                            <?php endif; ?>
+
+                            <?php if ($phone && in_array('phone_ok', $contact_prefs)) : ?>
+                                <a href="tel:<?php echo esc_attr($phone); ?>" 
+                                   class="hph-btn hph-btn-outline hph-btn-block">
+                                    <i class="fas fa-phone"></i> <?php echo esc_html($phone); ?>
+                                </a>
+                            <?php endif; ?>
+                            
+                            <?php if ($chat_link && in_array('text_ok', $contact_prefs)) : ?>
+                                <a href="<?php echo esc_url($chat_link); ?>" 
+                                   class="hph-btn hph-btn-outline hph-btn-block"
+                                   target="_blank">
+                                    <i class="fas fa-comment"></i> Chat Now
+                                </a>
+                            <?php endif; ?>
+                            
+                            <?php if ($email && in_array('email_ok', $contact_prefs)) : ?>
+                                <a href="mailto:<?php echo esc_attr($email); ?>" 
+                                   class="hph-btn hph-btn-outline hph-btn-block">
+                                    <i class="fas fa-envelope"></i> Email Agent
+                                </a>
+                            <?php endif; ?>
+
+                            <a href="<?php echo get_permalink($agent_id); ?>" 
+                               class="hph-btn hph-btn-outline hph-btn-block">
+                                View Full Profile
                             </a>
                         </div>
+
+                        <?php if ($social_links) : ?>
+                            <div class="hph-agent-social">
+                                <?php foreach ($social_links as $social) : 
+                                    if (empty($social['url'])) continue;
+                                ?>
+                                    <a href="<?php echo esc_url($social['url']); ?>" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="hph-agent-social-link">
+                                        <i class="fab fa-<?php echo esc_attr($social['platform']); ?>"></i>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($service_areas) : ?>
+                            <div class="hph-agent-service-areas">
+                                <h4>Service Areas</h4>
+                                <div class="hph-service-area-tags">
+                                    <?php foreach ($service_areas as $area) : ?>
+                                        <span class="hph-service-area-tag">
+                                            <?php echo esc_html(str_replace('_', ' ', ucwords($area))); ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
-                
+                <?php 
+                wp_reset_postdata();
+                endif; 
+                ?>
+
                 <!-- Contact Form -->
                 <div class="hph-card hph-contact-form-card">
                     <h3>Interested in this property?</h3>
