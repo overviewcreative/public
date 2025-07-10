@@ -266,14 +266,15 @@ input[type="range"] {
 .hph-bedroom-option span,
 .hph-bathroom-option span {
     display: block;
-    padding: var(--hph-spacing-2) var(--hph-spacing-3);
+    padding: var(--hph-spacing-1) var(--hph-spacing-2);
     text-align: center;
     border: 1px solid var(--hph-color-gray-300);
     border-radius: var(--hph-radius-lg);
-    font-size: var(--hph-font-size-sm);
+    font-size: var(--hph-font-size-xs);
     font-weight: 500;
     transition: var(--hph-transition-fast);
     background: var(--hph-color-gray-100);
+    white-space: nowrap;
 }
 
 .hph-bedroom-option:hover span,
@@ -293,23 +294,14 @@ input[type="range"] {
 
 /* Features Checkboxes */
 .hph-features-checkboxes {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--hph-spacing-2);
 }
 
 .hph-feature-checkbox {
-    display: flex;
-    align-items: center;
-    gap: var(--hph-spacing-3);
+    position: relative;
     cursor: pointer;
-    padding: var(--hph-spacing-2);
-    border-radius: var(--hph-radius-lg);
-    transition: var(--hph-transition-fast);
-}
-
-.hph-feature-checkbox:hover {
-    background: var(--hph-color-gray-50);
 }
 
 .hph-feature-checkbox input {
@@ -318,42 +310,34 @@ input[type="range"] {
     cursor: pointer;
 }
 
-.hph-checkmark {
-    position: relative;
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--hph-color-gray-300);
-    border-radius: var(--hph-radius-base);
+.hph-feature-checkbox .hph-feature-label {
+    display: block;
+    padding: var(--hph-spacing-1) var(--hph-spacing-2);
+    text-align: center;
+    border: 1px solid var(--hph-color-gray-300);
+    border-radius: var(--hph-radius-lg);
+    font-size: var(--hph-font-size-xs);
+    font-weight: 500;
     transition: var(--hph-transition-fast);
-    flex-shrink: 0;
+    background: var(--hph-color-gray-100);
+    color: var(--hph-color-gray-700);
+    white-space: nowrap;
 }
 
-.hph-checkmark::after {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 2px;
-    width: 4px;
-    height: 8px;
-    border: solid var(--hph-color-white);
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    opacity: 0;
-    transition: var(--hph-transition-fast);
+.hph-feature-checkbox:hover .hph-feature-label {
+    border-color: var(--hph-color-primary-400);
+    background: var(--hph-color-primary-50);
 }
 
-.hph-feature-checkbox input:checked ~ .hph-checkmark {
-    background: var(--hph-color-primary-600);
+.hph-feature-checkbox input:checked ~ .hph-feature-label {
+    background: linear-gradient(135deg, var(--hph-color-primary-500), var(--hph-color-primary-600));
+    color: var(--hph-color-white);
     border-color: var(--hph-color-primary-600);
 }
 
-.hph-feature-checkbox input:checked ~ .hph-checkmark::after {
-    opacity: 1;
-}
-
-.hph-feature-label {
-    font-size: var(--hph-font-size-sm);
-    color: var(--hph-color-gray-700);
+/* Remove the old checkmark styles since we're using the full button style now */
+.hph-checkmark {
+    display: none;
 }
 
 /* Filter Actions */
