@@ -9,44 +9,6 @@
  * @subpackage Search
  */
 
-use function WordPress\{
-    absint,
-    add_action,
-    add_shortcode,
-    admin_url,
-    check_ajax_referer,
-    filemtime,
-    function_exists,
-    get_current_user_id,
-    get_field,
-    get_permalink,
-    get_post_meta,
-    get_the_ID,
-    get_the_post_thumbnail_url,
-    get_the_title,
-    get_transient,
-    plugin_dir_path,
-    plugins_url,
-    sanitize_key,
-    sanitize_text_field,
-    set_transient,
-    wp_cache_get,
-    wp_cache_set,
-    wp_create_nonce,
-    wp_enqueue_script,
-    wp_enqueue_style,
-    wp_get_post_terms,
-    wp_localize_script,
-    wp_register_script,
-    wp_register_style,
-    wp_reset_postdata,
-    wp_send_json_error,
-    wp_send_json_success,
-    wp_unslash
-};
-
-use WP_Query;
-
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -149,7 +111,7 @@ class Search_Filter_Handler {
      * @return string Sanitized search query
      */
     private function validate_search_query(string $query): string {
-        return sanitize_text_field(wp_unslash($query));
+        return (string) sanitize_text_field(wp_unslash((string) $query));
     }
 
     /**
@@ -195,7 +157,13 @@ class Search_Filter_Handler {
      * @return mixed Field value or default
      */
     private function get_field_value(string $field, $default = '') {
-        return function_exists('get_field') ? get_field($field) : get_post_meta(get_the_ID(), $field, true) ?: $default;
+        // Fix: Always return $default if meta is empty string or null
+        if (function_exists('get_field')) {
+            $value = get_field($field);
+            return ($value !== '' && $value !== null) ? $value : $default;
+        }
+        $meta = get_post_meta(get_the_ID(), $field, true);
+        return ($meta !== '' && $meta !== null) ? $meta : $default;
     }
 
     /**
@@ -300,9 +268,17 @@ class Search_Filter_Handler {
         if ($query->have_posts()) {
             while ($query->have_posts()) {
                 $query->the_post();
+                // Fix: Check meta_query key existence and type
+                $title = get_the_title();
+                if (!empty($args['meta_query']) && is_array($args['meta_query']) && isset($args['meta_query'][0]['key'])) {
+                    $meta_title = $this->get_field_value($args['meta_query'][0]['key']);
+                    if ($meta_title) {
+                        $title = $meta_title;
+                    }
+                }
                 $suggestions[] = [
                     'id' => get_the_ID(),
-                    'title' => $args['meta_query'] ? $this->get_field_value($args['meta_query'][0]['key']) : get_the_title(),
+                    'title' => $title,
                     'subtitle' => $this->get_field_value($subtitle_field),
                     'url' => get_permalink()
                 ];

@@ -142,22 +142,29 @@ class HPH_Theme {
      * Load templates from custom directories
      */
     public function load_custom_templates($template): string {
-        $post_type = get_post_type();
-        
-        if (is_singular() && !empty($post_type)) {
-            $custom_template = HPH_THEME_DIR . "/templates/{$post_type}/single-{$post_type}.php";
-            if (file_exists($custom_template)) {
-                return $custom_template;
+        // Single post type
+        if (is_singular()) {
+            $post_type = get_post_type();
+            if (!empty($post_type)) {
+                $custom_template = HPH_THEME_DIR . "/templates/{$post_type}/single-{$post_type}.php";
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
             }
         }
-        
-        if (is_post_type_archive() && !empty($post_type)) {
-            $custom_template = HPH_THEME_DIR . "/templates/{$post_type}/archive-{$post_type}.php";
-            if (file_exists($custom_template)) {
-                return $custom_template;
+
+        // Archive post type
+        if (is_post_type_archive()) {
+            $queried_object = get_queried_object();
+            if ($queried_object && isset($queried_object->name) && !empty($queried_object->name)) {
+                $archive_post_type = $queried_object->name;
+                $custom_template = HPH_THEME_DIR . "/templates/{$archive_post_type}/archive-{$archive_post_type}.php";
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
             }
         }
-        
+
         return $template;
     }
 
@@ -564,3 +571,17 @@ function hph_add_query_vars($vars) {
     return array_merge($vars, $search_vars);
 }
 add_filter('query_vars', 'hph_add_query_vars');
+
+function happyplace_enqueue_assets() {
+ 
+    wp_enqueue_style('happyplace-main', get_template_directory_uri() . '/assets/css/main.css', [], '1.0');
+    wp_enqueue_style('happyplace-archive-listing', get_template_directory_uri() . '/assets/css/archive-listing.css', [], '1.0');
+    wp_enqueue_style('happyplace-listing-swipe-card', get_template_directory_uri() . '/assets/css/cards/listing-swipe-card.css', [], '1.0');
+    wp_enqueue_style('happyplace-single-listing', get_template_directory_uri() . '/assets/css/single-listing', [], '1.0');
+    wp_enqueue_script('happyplace-listing-swipe', get_template_directory_uri() . '/assets/js/listing-swipe-card.js', ['jquery'], '1.0', true);
+    wp_enqueue_script('happyplace-archive-listing', get_template_directory_uri() . '/assets/js/archive-listing.js', ['jquery'], '1.0', true);
+    wp_enqueue_script('happyplace-single-listing', get_template_directory_uri() . '/assets/js/single-listing.js', ['jquery'], '1.0', true);
+
+    wp_enqueue_style('happyplace-main', get_template_directory_uri() . '/assets/css/main.css', [], '1.0');}
+
+add_action('wp_enqueue_scripts', 'happyplace_enqueue_assets');
