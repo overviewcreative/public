@@ -1,189 +1,67 @@
 <?php
 /**
- * Theme Functions for HPH Theme
- * Author: The Happy Place Team
+ * Happy Place Theme Functions
+ * 
+ * Main theme functions file for the Happy Place Real Estate Theme.
+ * This file initializes the theme and loads all required components.
+ * 
+ * @package HappyPlace
+ * @version 1.0.0
+ * @author Happy Place Team
  */
 
+// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Define theme constants
+// =============================================================================
+// THEME CONSTANTS
+// =============================================================================
+
 define('HPH_THEME_VERSION', '1.0.0');
 define('HPH_THEME_DIR', get_template_directory());
 define('HPH_THEME_URI', get_template_directory_uri());
 
-/**
- * Count the number of listing posts associated with a community
- *
- * @param int $community_id The ID of the community post
- * @return int The number of listings in the community
- */
-function count_posts_in_community(int $community_id): int {
-    if (!$community_id) {
-        return 0;
-    }
-
-    $args = array(
-        'post_type' => 'listing',
-        'post_status' => 'publish',
-        'meta_query' => array(
-            array(
-                'key' => 'community',
-                'value' => $community_id,
-                'compare' => '='
-            )
-        ),
-        'posts_per_page' => -1,
-        'fields' => 'ids' // Only get post IDs for better performance
-    );
-
-    $listings = get_posts($args);
-    return count($listings);
-}
-
-/**
- * Get statistics for a community including average price, total homes, etc.
- *
- * @param int $community_id The ID of the community post
- * @return array Statistics for the community
- */
-function get_community_stats(int $community_id): array {
-    if (!$community_id) {
-        return array();
-    }
-
-    $args = array(
-        'post_type' => 'listing',
-        'post_status' => 'publish',
-        'meta_query' => array(
-            array(
-                'key' => 'community',
-                'value' => $community_id,
-                'compare' => '='
-            )
-        ),
-        'posts_per_page' => -1
-    );
-
-    $listings = get_posts($args);
-    
-    if (empty($listings)) {
-        return array();
-    }
-
-    $total_price = 0;
-    $total_sqft = 0;
-    $total_homes = count($listings);
-
-    foreach ($listings as $listing) {
-        $price = (float)get_post_meta($listing->ID, 'price', true);
-        $sqft = (float)get_post_meta($listing->ID, 'square_feet', true);
-        
-        if ($price > 0) {
-            $total_price += $price;
-        }
-        
-        if ($sqft > 0) {
-            $total_sqft += $sqft;
-        }
-    }
-
-    return array(
-        'avg_price' => $total_homes > 0 ? HPH_Theme::format_price($total_price / $total_homes) : 0,
-        'total_homes' => $total_homes,
-        'avg_sqft' => $total_homes > 0 ? round($total_sqft / $total_homes) : 0
-    );
-}
+// =============================================================================
+// MAIN THEME CLASS
+// =============================================================================
 
 class HPH_Theme {
     private static ?self $instance = null;
-
+    
+    /**
+     * Get singleton instance
+     */
     public static function instance(): self {
         return self::$instance ??= new self();
     }
-
+    
+    /**
+     * Constructor - Initialize theme
+     */
     private function __construct() {
-        $this->setup_theme();
-        $this->register_assets();
-        $this->setup_ajax_handlers();
-        $this->register_widgets();
-        $this->setup_cache_tools();
-        $this->register_settings(); // Add this line
+        $this->load_dependencies();
+        $this->setup_hooks();
     }
-
-    private function register_settings(): void {
-        add_action('admin_init', function() {
-            register_setting(
-                'general',
-                'hph_google_maps_api_key',
-                [
-                    'type' => 'string',
-                    'sanitize_callback' => 'sanitize_text_field',
-                    'default' => ''
-                ]
-            );
-
-            add_settings_section(
-                'hph_maps_settings',
-                __('Map Settings', 'happy-place'),
-                function() {
-                    echo '<p>' . __('Configure Google Maps integration settings.', 'happy-place') . '</p>';
-                },
-                'general'
-            );
-
-            add_settings_field(
-                'hph_google_maps_api_key',
-                __('Google Maps API Key', 'happy-place'),
-                function() {
-                    $key = get_option('hph_google_maps_api_key');
-                    echo '<input type="text" class="regular-text" name="hph_google_maps_api_key" value="' . esc_attr($key) . '">';
-                    echo '<p class="description">' . __('Enter your Google Maps API key. <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">Get an API key</a>', 'happy-place') . '</p>';
-                },
-                'general',
-                'hph_maps_settings'
-            );
-        });
-    }
-
-    private function setup_theme(): void {
-        add_action('after_setup_theme', [$this, 'theme_supports']);
-        add_action('init', [$this, 'register_image_sizes']);
-        add_action('init', [$this, 'register_nav_menus']);
-        
-        // Add template loader
-        add_filter('template_include', [$this, 'load_custom_templates']);
-
-        // Load includes
-        $this->load_includes();
-    }
-
-    public function enqueue_admin_assets(): void {
-        $screen = get_current_screen();
-        if ($screen && $screen->post_type === 'listing') {
-            wp_enqueue_script(
-                'hph-listing-geocode',
-                get_template_directory_uri() . '/assets/js/admin/listing-geocode.js',
-                ['jquery', 'acf-input'],
-                HPH_THEME_VERSION,
-                true
-            );
-
-            wp_localize_script('hph-listing-geocode', 'hphAdmin', [
-                'geocodeNonce' => wp_create_nonce('hph_geocode_nonce')
-            ]);
-        }
-    }
-
-    private function load_includes(): void {
+    
+    /**
+     * Load required files
+     */
+    private function load_dependencies(): void {
         $files = [
-            'inc/template-functions.php',
-            'inc/template-tags.php',
-            'inc/shortcodes.php',
-            'inc/geocoding.php' // Add this line
+            'inc/class-theme-setup.php',          // Theme setup and configuration
+            'inc/class-assets-manager.php',       // Asset loading and management
+            'inc/class-template-loader.php',      // Custom template loading
+            'inc/class-ajax-handler.php',         // AJAX request handling
+            'inc/class-dashboard-manager.php',    // Agent dashboard functionality
+            'inc/listing-helpers.php',            // Listing utility functions
+            'inc/community-helpers.php',          // Community utility functions
+            'inc/template-functions.php',         // Template helper functions
+            'inc/template-tags.php',              // Custom template tags
+            'inc/shortcodes.php',                 // Theme shortcodes
         ];
-
+        
         foreach ($files as $file) {
             $path = HPH_THEME_DIR . '/' . $file;
             if (file_exists($path)) {
@@ -191,63 +69,41 @@ class HPH_Theme {
             }
         }
     }
-
+    
     /**
-     * Load templates from custom directories
+     * Setup WordPress hooks
      */
-    public function load_custom_templates($template): string {
-        // Single post type
-        if (is_singular()) {
-            $post_type = get_post_type();
-            if (!empty($post_type)) {
-                $custom_template = HPH_THEME_DIR . "/templates/{$post_type}/single-{$post_type}.php";
-                if (file_exists($custom_template)) {
-                    return $custom_template;
-                }
-            }
-        }
-
-        // Archive post type
-        if (is_post_type_archive()) {
-            $queried_object = get_queried_object();
-            if ($queried_object && isset($queried_object->name) && !empty($queried_object->name)) {
-                $archive_post_type = $queried_object->name;
-                $custom_template = HPH_THEME_DIR . "/templates/{$archive_post_type}/archive-{$archive_post_type}.php";
-                if (file_exists($custom_template)) {
-                    return $custom_template;
-                }
-            }
-        }
-
-        return $template;
+    private function setup_hooks(): void {
+        add_action('after_setup_theme', [$this, 'theme_setup']);
+        add_action('init', [$this, 'init_theme_features']);
+        add_action('widgets_init', [$this, 'register_sidebars']);
+        add_filter('query_vars', [$this, 'add_query_vars']);
+        add_filter('template_include', [$this, 'load_custom_templates']);
     }
-
-    public function theme_supports(): void {
-        // Core theme supports
+        // Clean up unnecessary assets
+         public function cleanup_wp_assets(): void {
+        wp_dequeue_style('wp-block-library');
+        wp_dequeue_style('wp-block-library-theme');
+        wp_dequeue_script('wp-embed');
+        remove_action('wp_head', 'print_emoji_detection_script', 7);
+        remove_action('wp_print_styles', 'print_emoji_styles');
+    }
+    
+    /**
+     * Theme setup - runs after WordPress is loaded
+     */
+    public function theme_setup(): void {
+        // Theme supports
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
         add_theme_support('html5', [
-            'search-form', 
-            'gallery', 
-            'caption', 
-            'comment-form', 
-            'comment-list'
+            'search-form', 'gallery', 'caption', 
+            'comment-form', 'comment-list'
         ]);
         add_theme_support('custom-logo');
         add_theme_support('customize-selective-refresh-widgets');
-
-        // Custom post type support
-        add_theme_support('post-type-listing');
-        add_theme_support('post-type-agent');
-        add_theme_support('post-type-open-house');    
-        add_theme_support('post-type-local-place');   
-        add_theme_support('post-type-transaction');
-        add_theme_support('post-type-community');
-        add_theme_support('post-type-city');
-        add_theme_support('post-type-team');
-    }
-
-    public function register_nav_menus(): void {
+        
+        // Navigation menus
         register_nav_menus([
             'primary' => __('Primary Menu', 'happy-place'),
             'footer-links-1' => __('Footer Links 1', 'happy-place'),
@@ -256,345 +112,161 @@ class HPH_Theme {
             'footer-legal' => __('Footer Legal', 'happy-place'),
         ]);
     }
-
-    private function register_widgets(): void {
-        add_action('widgets_init', [$this, 'register_widget_areas']);
+    
+    /**
+     * Initialize theme features
+     */
+    public function init_theme_features(): void {
+        $this->register_image_sizes();
+        $this->setup_google_maps_settings();
     }
-
-    public function register_widget_areas(): void {
-        // Main sidebar
-        register_sidebar([
-            'name'          => __('Sidebar', 'happy-place'),
-            'id'            => 'sidebar-1',
-            'description'   => __('Add widgets here.', 'happy-place'),
-            'before_widget' => '<section id="%1$s" class="widget %2$s">',
-            'after_widget'  => '</section>',
-            'before_title'  => '<h2 class="widget-title">',
-            'after_title'   => '</h2>',
-        ]);
-        
-        // Footer widgets
-        for ($i = 1; $i <= 4; $i++) {
-            register_sidebar([
-                'name'          => sprintf(__('Footer %d', 'happy-place'), $i),
-                'id'            => "footer-{$i}",
-                'description'   => sprintf(__('Footer widget area %d', 'happy-place'), $i),
-                'before_widget' => '<div id="%1$s" class="widget %2$s">',
-                'after_widget'  => '</div>',
-                'before_title'  => '<h3 class="widget-title">',
-                'after_title'   => '</h3>',
-            ]);
-        }
-    }
-
-    public function register_image_sizes(): void {
-        // Property related sizes
+    
+    /**
+     * Register custom image sizes
+     */
+    private function register_image_sizes(): void {
+        // Property images
         add_image_size('listing-thumb', 480, 320, true);
         add_image_size('listing-gallery', 1200, 800, true);
+        add_image_size('listing-hero', 1600, 600, true);
         
-        // People related sizes
+        // People images
         add_image_size('agent-avatar', 150, 150, true);
         add_image_size('agent-large', 480, 640, true);
         
-        // Location related sizes
+        // Location images
         add_image_size('community-thumb', 480, 320, true);
         add_image_size('community-hero', 1600, 600, true);
         add_image_size('city-thumb', 480, 320, true);
         add_image_size('city-hero', 1600, 600, true);
         
-        // Local places sizes
-        add_image_size('place-thumb', 320, 240, true);     
-        add_image_size('place-feature', 800, 600, true);   
-        add_image_size('place-map-marker', 64, 64, true);  
+        // Local places
+        add_image_size('place-thumb', 320, 240, true);
+        add_image_size('place-feature', 800, 600, true);
+        add_image_size('place-map-marker', 64, 64, true);
         
-        // Open house sizes
-        add_image_size('open-house-thumb', 480, 320, true); 
-        add_image_size('open-house-gallery', 800, 600, true); 
+        // Open houses
+        add_image_size('open-house-thumb', 480, 320, true);
+        add_image_size('open-house-gallery', 800, 600, true);
     }
-
-    private function register_assets(): void {
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_theme_assets']);
-    }
-
-    public function enqueue_theme_assets(): void {
-        $theme = wp_get_theme();
-        $uri = get_template_directory_uri();
-        $ver = $theme->get('Version');
-
-        // Main theme stylesheet and scripts
-        wp_enqueue_style('hph-theme', get_stylesheet_uri(), [], $ver);
-        wp_enqueue_script('hph-core', $uri . '/assets/js/core.js', ['jquery'], $ver, true);
-        wp_enqueue_script('hph-theme', $uri . '/assets/js/theme.js', ['jquery', 'hph-core'], $ver, true);
-        
-        // Dequeue unnecessary styles
-        wp_dequeue_style('wp-block-library');
-        wp_dequeue_style('wp-block-library-theme');
-
-        // Load post type specific styles
-        $post_type = get_post_type();
-        if ($post_type) {
-            $style_path = "/assets/css/post-types/{$post_type}.css";
-            if (file_exists(HPH_THEME_DIR . $style_path)) {
-                wp_enqueue_style(
-                    "hph-{$post_type}", 
-                    $uri . $style_path,
-                    ['hph-theme'],
-                    $ver
-                );
-            }
-        }
-
-        // Map functionality
-        if (is_post_type_archive('listing') || is_singular('listing')) {
-            wp_enqueue_style('hph-maps', $uri . '/assets/css/maps.css', [], $ver);
-            
-            $maps_api_key = get_option('hph_google_maps_api_key', '');
-            if ($maps_api_key) {
-                wp_enqueue_script('google-maps', 
-                    "https://maps.googleapis.com/maps/api/js?key={$maps_api_key}&libraries=places", 
-                    [], null, true);
-                wp_enqueue_script('markerclusterer',
-                    'https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js',
-                    ['google-maps'], null, true);
-                wp_enqueue_script('hph-maps', 
-                    $uri . '/assets/js/listing-maps.js', 
-                    ['jquery', 'google-maps', 'markerclusterer'], 
-                    $ver, true);
-            }
-        }
-
-        // Gallery pages - Slick Carousel for property galleries
-        if (is_singular(['listing', 'community', 'city', 'place'])) {
-            wp_enqueue_style('slick', 
-                'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css', 
-                ['hph-theme'], '1.8.1');
-            wp_enqueue_style('slick-theme', 
-                'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css', 
-                ['slick', 'hph-theme'], '1.8.1');
-            wp_enqueue_script('slick', 
-                'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js', 
-                ['jquery', 'hph-core'], '1.8.1', true);
-        }
-
-        // Script localization
-        wp_localize_script('hph-core', 'happyplace', [
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('hph_search_nonce'),
-            'markerIcon' => $uri . '/assets/images/marker.png'
-        ]);
-    }
-
-    public function cleanup_assets(): void {
-        // Remove unnecessary WordPress core assets
-        wp_dequeue_style('wp-block-library');
-        wp_dequeue_style('wp-block-library-theme');
-        wp_dequeue_script('wp-embed');
-        
-        // Remove emoji scripts
-        remove_action('wp_head', 'print_emoji_detection_script', 7);
-        remove_action('wp_print_styles', 'print_emoji_styles');
-    }
-
-    private function setup_ajax_handlers(): void {
-        add_action('wp_ajax_hph_search_properties', [$this, 'ajax_search_properties']);
-        add_action('wp_ajax_nopriv_hph_search_properties', [$this, 'ajax_search_properties']);
-        
-        add_action('wp_ajax_hph_contact_agent', [$this, 'ajax_contact_agent']);
-        add_action('wp_ajax_nopriv_hph_contact_agent', [$this, 'ajax_contact_agent']);
-    }
-
-    public function ajax_search_properties(): void {
-        check_ajax_referer('hph_search_nonce', 'security');
-
-        $args = [
-            'post_type' => 'listing',
-            'posts_per_page' => 50,
-            'meta_query' => ['relation' => 'AND']
-        ];
-
-        // Price Filter
-        if (!empty($_POST['filters']['price_min']) || !empty($_POST['filters']['price_max'])) {
-            $args['meta_query'][] = [
-                'key' => 'price',
-                'type' => 'NUMERIC',
-                'compare' => 'BETWEEN',
-                'value' => [
-                    !empty($_POST['filters']['price_min']) ? intval($_POST['filters']['price_min']) : 0,
-                    !empty($_POST['filters']['price_max']) ? intval($_POST['filters']['price_max']) : 999999999
-                ]
-            ];
-        }
-
-        // Additional filters can be added here
-
-        $query = new \WP_Query($args);
-        $properties = [];
-
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $properties[] = [
-                    'id' => get_the_ID(),
-                    'title' => get_the_title(),
-                    'price' => get_field('price'),
-                    'bedrooms' => get_field('bedrooms'),
-                    'bathrooms' => get_field('bathrooms'),
-                    'permalink' => get_permalink(),
-                    'image' => get_the_post_thumbnail_url(get_the_ID(), 'medium')
-                ];
-            }
-            wp_reset_postdata();
-        }
-
-        wp_send_json_success([
-            'properties' => $properties,
-            'total' => $query->found_posts
-        ]);
-    }
-
-    public function ajax_contact_agent(): void {
-        check_ajax_referer('hph_search_nonce', 'security');
-
-        $name = sanitize_text_field($_POST['name']);
-        $email = sanitize_email($_POST['email']);
-        $message = sanitize_textarea_field($_POST['message']);
-        $property_id = intval($_POST['property_id']);
-
-        $agent_email = get_field('email', get_field('agent', $property_id));
-
-        if (!$agent_email) {
-            wp_send_json_error('No agent contact found');
-        }
-
-        $email_subject = "Property Inquiry: " . get_the_title($property_id);
-        $email_body = "Name: {$name}\n";
-        $email_body .= "Email: {$email}\n";
-        $email_body .= "Message:\n{$message}\n";
-        $email_body .= "Property Link: " . get_permalink($property_id);
-
-        $result = wp_mail($agent_email, $email_subject, $email_body, [
-            "From: {$name} <{$email}>"
-        ]);
-
-        $result 
-            ? wp_send_json_success('Message sent')
-            : wp_send_json_error('Failed to send message');
-    }
-
-    private function setup_cache_tools(): void {
-        add_action('admin_menu', [$this, 'add_cache_tool_page']);
-        add_action('admin_init', [$this, 'handle_cache_clear']);
-        add_action('admin_notices', [$this, 'display_cache_notices']);
-    }
-
-    public function add_cache_tool_page(): void {
-        add_management_page(
-            __('Cache Tools', 'happy-place'),
-            __('Cache Tools', 'happy-place'),
-            'manage_options',
-            'hph-cache-tools',
-            [$this, 'render_cache_tool_page']
-        );
-    }
-
-    public function render_cache_tool_page(): void {
-        ?>
-        <div class="wrap">
-            <h1><?php _e('Cache Tools', 'happy-place'); ?></h1>
-            
-            <div class="card">
-                <h2><?php _e('Clear Cache', 'happy-place'); ?></h2>
-                <p><?php _e('Clear various types of cache to refresh site content and settings.', 'happy-place'); ?></p>
-                
-                <form method="post" action="">
-                    <?php wp_nonce_field('hph_clear_cache', 'hph_cache_nonce'); ?>
-                    
-                    <p><label>
-                        <input type="checkbox" name="cache_types[]" value="transients" checked>
-                        <?php _e('Clear Transients', 'happy-place'); ?>
-                    </label></p>
-                    
-                    <p><label>
-                        <input type="checkbox" name="cache_types[]" value="object">
-                        <?php _e('Clear Object Cache', 'happy-place'); ?>
-                    </label></p>
-                    
-                    <p><label>
-                        <input type="checkbox" name="cache_types[]" value="permalinks">
-                        <?php _e('Flush Permalinks', 'happy-place'); ?>
-                    </label></p>
-
-                    <p><label>
-                        <input type="checkbox" name="cache_types[]" value="property">
-                        <?php _e('Clear Property Cache', 'happy-place'); ?>
-                    </label></p>
-                    
-                    <?php submit_button(__('Clear Selected Cache', 'happy-place')); ?>
-                </form>
-            </div>
-        </div>
-        <?php
-    }
-
-    public function handle_cache_clear(): void {
-        if (!isset($_POST['hph_cache_nonce']) || 
-            !wp_verify_nonce($_POST['hph_cache_nonce'], 'hph_clear_cache')) {
-            return;
-        }
-
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
-        $cache_types = $_POST['cache_types'] ?? [];
-        $cleared = [];
-
-        foreach ($cache_types as $type) {
-            switch ($type) {
-                case 'transients':
-                    global $wpdb;
-                    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_transient_%'");
-                    $cleared[] = __('Transients', 'happy-place');
-                    break;
-
-                case 'object':
-                    wp_cache_flush();
-                    $cleared[] = __('Object Cache', 'happy-place');
-                    break;
-
-                case 'permalinks':
-                    flush_rewrite_rules();
-                    $cleared[] = __('Permalinks', 'happy-place');
-                    break;
-
-                case 'property':
-                    global $wpdb;
-                    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_transient_property_%'");
-                    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '%_transient_listing_%'");
-                    $cleared[] = __('Property Cache', 'happy-place');
-                    break;
-            }
-        }
-
-        if (!empty($cleared)) {
-            set_transient('hph_cache_cleared', $cleared, 30);
-        }
-    }
-
-    public function display_cache_notices(): void {
-        $cleared = get_transient('hph_cache_cleared');
-        if ($cleared) {
-            delete_transient('hph_cache_cleared');
-            $message = sprintf(
-                __('Successfully cleared: %s', 'happy-place'),
-                implode(', ', $cleared)
-            );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($message) . '</p></div>';
-        }
-    }
-
+    
     /**
-     * Helper function to format price
+     * Setup Google Maps API settings
+     */
+    private function setup_google_maps_settings(): void {
+        add_action('admin_init', function() {
+            register_setting('general', 'hph_google_maps_api_key', [
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+                'default' => ''
+            ]);
+            
+            add_settings_section(
+                'hph_maps_settings',
+                __('Map Settings', 'happy-place'),
+                function() {
+                    echo '<p>' . __('Configure Google Maps integration.', 'happy-place') . '</p>';
+                },
+                'general'
+            );
+            
+            add_settings_field(
+                'hph_google_maps_api_key',
+                __('Google Maps API Key', 'happy-place'),
+                function() {
+                    $key = get_option('hph_google_maps_api_key');
+                    echo '<input type="text" class="regular-text" name="hph_google_maps_api_key" value="' . esc_attr($key) . '">';
+                    echo '<p class="description">' . __('Enter your Google Maps API key.', 'happy-place') . '</p>';
+                },
+                'general',
+                'hph_maps_settings'
+            );
+        });
+    }
+    
+    /**
+     * Register widget areas
+     */
+    public function register_sidebars(): void {
+        // Main sidebar
+        register_sidebar([
+            'name' => __('Sidebar', 'happy-place'),
+            'id' => 'sidebar-1',
+            'description' => __('Add widgets here.', 'happy-place'),
+            'before_widget' => '<section id="%1$s" class="widget %2$s">',
+            'after_widget' => '</section>',
+            'before_title' => '<h2 class="widget-title">',
+            'after_title' => '</h2>',
+        ]);
+        
+        // Footer widgets
+        for ($i = 1; $i <= 4; $i++) {
+            register_sidebar([
+                'name' => sprintf(__('Footer %d', 'happy-place'), $i),
+                'id' => "footer-{$i}",
+                'description' => sprintf(__('Footer widget area %d', 'happy-place'), $i),
+                'before_widget' => '<div id="%1$s" class="widget %2$s">',
+                'after_widget' => '</div>',
+                'before_title' => '<h3 class="widget-title">',
+                'after_title' => '</h3>',
+            ]);
+        }
+    }
+    
+    /**
+     * Add custom query variables
+     */
+    public function add_query_vars($vars): array {
+        $custom_vars = [
+            // Dashboard
+            'happy_place_dashboard', 'agent_dashboard', 'section',
+            
+            // Search & Filters
+            'search_term', 'location', 'city', 'community', 'place',
+            'price_min', 'price_max', 'bedrooms', 'bathrooms',
+            'property_type', 'features', 'sort', 'view',
+            
+            // Dates
+            'date_from', 'date_to', 'time_from', 'time_to',
+            
+            // Transactions
+            'transaction_type', 'transaction_date'
+        ];
+        
+        return array_merge($vars, $custom_vars);
+    }
+    
+    /**
+     * Load custom templates
+     */
+    public function load_custom_templates($template): string {
+        // Single post types
+        if (is_singular()) {
+            $post_type = get_post_type();
+            if ($post_type) {
+                $custom_template = HPH_THEME_DIR . "/templates/{$post_type}/single-{$post_type}.php";
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
+            }
+        }
+        
+        // Archive post types
+        if (is_post_type_archive()) {
+            $queried_object = get_queried_object();
+            if ($queried_object && !empty($queried_object->name)) {
+                $custom_template = HPH_THEME_DIR . "/templates/{$queried_object->name}/archive-{$queried_object->name}.php";
+                if (file_exists($custom_template)) {
+                    return $custom_template;
+                }
+            }
+        }
+        
+        return $template;
+    }
+    
+    /**
+     * Format price for display
      */
     public static function format_price($price): string {
         if (!$price) return '';
@@ -602,59 +274,185 @@ class HPH_Theme {
     }
 }
 
-// Initialize the theme
-function hph_theme_init() {
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if current page is dashboard
+ */
+function hph_is_dashboard(): bool {
+    if (is_admin() && function_exists('get_current_screen')) {
+        $screen = get_current_screen();
+        if ($screen && $screen->base === 'toplevel_page_happy-place-dashboard') {
+            return true;
+        }
+    }
+    
+    return is_page_template('templates/dashboard.php') || 
+           is_page_template('templates/agent-dashboard.php') || 
+           get_query_var('happy_place_dashboard', false) || 
+           get_query_var('agent_dashboard', false);
+}
+
+/**
+ * Get current dashboard section
+ */
+function hph_get_dashboard_section(): string {
+    return get_query_var('section', 'overview');
+}
+
+/**
+ * Get dashboard URL
+ */
+function hph_get_dashboard_url(string $section = ''): string {
+    $url = home_url('agent-dashboard');
+    if ($section && $section !== 'overview') {
+        $url .= '/' . $section;
+    }
+    return $url;
+}
+
+/**
+ * Count posts in a community
+ */
+function hph_count_community_listings(int $community_id): int {
+    if (!$community_id) return 0;
+    
+    $args = [
+        'post_type' => 'listing',
+        'post_status' => 'publish',
+        'meta_query' => [
+            [
+                'key' => 'community',
+                'value' => $community_id,
+                'compare' => '='
+            ]
+        ],
+        'posts_per_page' => -1,
+        'fields' => 'ids'
+    ];
+    
+    return count(get_posts($args));
+}
+
+/**
+ * Get community statistics
+ */
+function hph_get_community_stats(int $community_id): array {
+    if (!$community_id) return [];
+    
+    $listings = get_posts([
+        'post_type' => 'listing',
+        'post_status' => 'publish',
+        'meta_query' => [
+            [
+                'key' => 'community',
+                'value' => $community_id,
+                'compare' => '='
+            ]
+        ],
+        'posts_per_page' => -1
+    ]);
+    
+    if (empty($listings)) return [];
+    
+    $total_price = 0;
+    $total_sqft = 0;
+    $total_homes = count($listings);
+    
+    foreach ($listings as $listing) {
+        $price = (float) get_field('price', $listing->ID);
+        $sqft = (float) get_field('square_feet', $listing->ID);
+        
+        if ($price > 0) $total_price += $price;
+        if ($sqft > 0) $total_sqft += $sqft;
+    }
+    
+    return [
+        'avg_price' => $total_homes > 0 ? HPH_Theme::format_price($total_price / $total_homes) : 0,
+        'total_homes' => $total_homes,
+        'avg_sqft' => $total_homes > 0 ? round($total_sqft / $total_homes) : 0
+    ];
+}
+
+/**
+ * Format listing address
+ */
+function hph_format_listing_address(int $listing_id): string {
+    $full_address = get_field('full_address', $listing_id);
+    
+    if (is_string($full_address)) {
+        return $full_address;
+    }
+    
+    if (is_array($full_address)) {
+        $components = [];
+        if (!empty($full_address['street_address'])) $components[] = $full_address['street_address'];
+        if (!empty($full_address['city'])) $components[] = $full_address['city'];
+        if (!empty($full_address['region'])) $components[] = $full_address['region'];
+        if (!empty($full_address['zip_code'])) $components[] = $full_address['zip_code'];
+        return implode(', ', $components);
+    }
+    
+    return '';
+}
+
+/**
+ * Get listing bathrooms count
+ */
+function hph_get_listing_bathrooms(int $listing_id): float {
+    $full_baths = (float) get_field('full_bathrooms', $listing_id);
+    $partial_baths = (float) get_field('partial_bathrooms', $listing_id);
+    return $full_baths + ($partial_baths * 0.5);
+}
+
+/**
+ * Get listing main photo
+ */
+function hph_get_listing_photo(int $listing_id, string $size = 'medium'): string {
+    // Try main photo field
+    $main_photo = get_field('main_photo', $listing_id);
+    if ($main_photo) {
+        return is_array($main_photo) ? ($main_photo['sizes'][$size] ?? $main_photo['url']) : $main_photo;
+    }
+    
+    // Try gallery
+    $gallery = get_field('photo_gallery', $listing_id);
+    if ($gallery && !empty($gallery)) {
+        $first_image = $gallery[0];
+        return is_array($first_image) ? ($first_image['sizes'][$size] ?? $first_image['url']) : $first_image;
+    }
+    
+    // Try featured image
+    if (has_post_thumbnail($listing_id)) {
+        return get_the_post_thumbnail_url($listing_id, $size);
+    }
+    
+    return get_theme_file_uri('assets/images/property-placeholder.jpg');
+}
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+
+/**
+ * Initialize the theme
+ */
+function hph_theme_init(): HPH_Theme {
     return HPH_Theme::instance();
 }
+
+// Start the theme
 hph_theme_init();
 
-// Add query vars for all post types
-function hph_add_query_vars($vars) {
-    $search_vars = [
-        // Location vars
-        'location', 'city', 'community', 'place',
-        
-        // Property vars
-        'price_min', 'price_max', 'bedrooms', 'bathrooms', 
-        'property_type', 'features', 
-        
-        // Open house vars
-        'date_from', 'date_to', 'time_from', 'time_to',
-        
-        // Transaction vars
-        'transaction_type', 'transaction_date',
-        
-        // Common vars
-        'search_term', 'sort', 'view'
-    ];
-    return array_merge($vars, $search_vars);
-}
-add_filter('query_vars', 'hph_add_query_vars');
-
-function happyplace_enqueue_assets() {
-    $theme_version = '1.0';
-    $theme_uri = get_template_directory_uri();
-    $fa_version = '6.4.2'; // Font Awesome version
-
-    // Font Awesome
-    wp_enqueue_style('font-awesome', 
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/{$fa_version}/css/all.min.css",
-        [],
-        $fa_version
-    );
-
-    // Core styles
-    wp_enqueue_style('happyplace-main', $theme_uri . 'style.css', ['font-awesome'], $theme_version);
-
-    // Listing related styles
-    wp_enqueue_style('happyplace-archive-listing', $theme_uri . '/assets/css/archive-listing.css', ['happyplace-main'], $theme_version);
-    wp_enqueue_style('happyplace-listing-swipe-card', $theme_uri . '/assets/css/listing-swipe-card.css', ['happyplace-main'], $theme_version);
-    wp_enqueue_style('happyplace-single-listing', $theme_uri . '/assets/css/single-listing.css', ['happyplace-main'], $theme_version);
-
-    // Listing related scripts
-    wp_enqueue_script('happyplace-listing-swipe', $theme_uri . '/assets/js/listing-swipe-card.js', ['jquery'], $theme_version, true);
-    wp_enqueue_script('happyplace-archive-listing', $theme_uri . '/assets/js/archive-listing.js', ['jquery'], $theme_version, true);
-    wp_enqueue_script('happyplace-single-listing', $theme_uri . '/assets/js/single-listing.js', ['jquery'], $theme_version, true);
-}
-
-add_action('wp_enqueue_scripts', 'happyplace_enqueue_assets');
+/**
+ * Force rewrite rules flush on theme version change
+ */
+add_action('init', function() {
+    $version = get_option('hph_theme_version', '');
+    if ($version !== HPH_THEME_VERSION) {
+        flush_rewrite_rules();
+        update_option('hph_theme_version', HPH_THEME_VERSION);
+    }
+}, 1);

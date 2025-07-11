@@ -1,0 +1,56 @@
+{
+    "key": "group_agent_relationships",
+    "title": "Agent Relationships",
+    "fields": [
+        {
+            "key": "field_agent_cities",
+            "label": "Cities Served",
+            "name": "agent_cities",
+            "type": "relationship",
+            "instructions": "Select the cities this agent serves",
+            "required": 1,
+            "post_type": ["city"],
+            "filters": ["search"],
+            "return_format": "object"
+        },
+        {
+            "key": "field_agent_communities",
+            "label": "Communities",
+            "name": "agent_communities",
+            "type": "relationship",
+            "instructions": "Select the communities this agent specializes in",
+            "required": 0,
+            "post_type": ["community"],
+            "filters": ["search"],
+            "return_format": "object"
+        },
+        {
+            "key": "field_agent_transactions",
+            "label": "Transactions",
+            "name": "agent_transactions",
+            "type": "relationship",
+            "instructions": "Select associated transactions",
+            "required": 0,
+            "post_type": ["transaction"],
+            "filters": ["search"],
+            "return_format": "object"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "agent"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "Relationships for real estate agents"
+}

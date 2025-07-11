@@ -1,0 +1,141 @@
+{
+    "key": "group_location_intelligence",
+    "title": "Location Intelligence (Auto-Populated)",
+    "fields": [
+        {
+            "key": "field_school_data",
+            "label": "School Information",
+            "name": "school_data",
+            "type": "group",
+            "sub_fields": [
+                {
+                    "key": "field_school_district",
+                    "label": "School District",
+                    "name": "school_district",
+                    "type": "text",
+                    "readonly": 1,
+                    "wrapper": {"width": "50"}
+                },
+                {
+                    "key": "field_elementary_school",
+                    "label": "Elementary School",
+                    "name": "elementary_school",
+                    "type": "text",
+                    "readonly": 1,
+                    "wrapper": {"width": "50"}
+                },
+                {
+                    "key": "field_middle_school",
+                    "label": "Middle School",
+                    "name": "middle_school",
+                    "type": "text",
+                    "readonly": 1,
+                    "wrapper": {"width": "50"}
+                },
+                {
+                    "key": "field_high_school",
+                    "label": "High School",
+                    "name": "high_school",
+                    "type": "text",
+                    "readonly": 1,
+                    "wrapper": {"width": "50"}
+                }
+            ]
+        },
+        {
+            "key": "field_walkability_data",
+            "label": "Walkability & Transit",
+            "name": "walkability_data",
+            "type": "group",
+            "sub_fields": [
+                {
+                    "key": "field_walk_score",
+                    "label": "Walk Score",
+                    "name": "walk_score",
+                    "type": "number",
+                    "readonly": 1,
+                    "min": 0,
+                    "max": 100,
+                    "wrapper": {"width": "33.33"}
+                },
+                {
+                    "key": "field_transit_score",
+                    "label": "Transit Score",
+                    "name": "transit_score",
+                    "type": "number",
+                    "readonly": 1,
+                    "min": 0,
+                    "max": 100,
+                    "wrapper": {"width": "33.33"}
+                },
+                {
+                    "key": "field_bike_score",
+                    "label": "Bike Score",
+                    "name": "bike_score",
+                    "type": "number",
+                    "readonly": 1,
+                    "min": 0,
+                    "max": 100,
+                    "wrapper": {"width": "33.33"}
+                }
+            ]
+        },
+        {
+            "key": "field_nearby_amenities",
+            "label": "Nearby Amenities",
+            "name": "nearby_amenities",
+            "type": "repeater",
+            "instructions": "Auto-populated from Google Places API",
+            "max": 15,
+            "layout": "table",
+            "button_label": "Refresh Amenities",
+            "readonly": 1,
+            "sub_fields": [
+                {
+                    "key": "field_amenity_name",
+                    "label": "Name",
+                    "name": "amenity_name",
+                    "type": "text",
+                    "readonly": 1
+                },
+                {
+                    "key": "field_amenity_type",
+                    "label": "Type",
+                    "name": "amenity_type",
+                    "type": "text",
+                    "readonly": 1
+                },
+                {
+                    "key": "field_amenity_distance",
+                    "label": "Distance (miles)",
+                    "name": "distance_miles",
+                    "type": "number",
+                    "readonly": 1,
+                    "step": 0.1
+                },
+                {
+                    "key": "field_amenity_rating",
+                    "label": "Rating",
+                    "name": "rating",
+                    "type": "number",
+                    "readonly": 1,
+                    "min": 0,
+                    "max": 5,
+                    "step": 0.1
+                }
+            ]
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "listing"
+            }
+        ]
+    ],
+    "menu_order": 11,
+    "position": "normal",
+    "active": true
+}

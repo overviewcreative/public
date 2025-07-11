@@ -30,8 +30,13 @@ class Database {
      */
     private function __construct() {
         add_action('init', [$this, 'check_version']);
-        // Reference global constant with leading backslash
-        register_activation_hook(\HPH_PLUGIN_FILE, [$this, 'install']);
+        
+        // Only register activation hook if plugin file constant is defined
+        if (defined('HPH_PLUGIN_FILE')) {
+            register_activation_hook(\HPH_PLUGIN_FILE, [$this, 'install']);
+        } else {
+            error_log('HPH: Warning - HPH_PLUGIN_FILE constant not defined');
+        }
     }
 
     /**

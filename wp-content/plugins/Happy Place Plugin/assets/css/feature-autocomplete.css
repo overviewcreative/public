@@ -1,0 +1,95 @@
+/**
+ * Feature Autocomplete Styles
+ * Styling for the custom feature interface
+ */
+
+/* Autocomplete dropdown styling */
+.hph-feature-suggestions {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #fff;
+    z-index: 100000;
+}
+
+.hph-feature-suggestions .ui-menu-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.hph-feature-suggestions .ui-menu-item:last-child {
+    border-bottom: none;
+}
+
+.hph-feature-suggestions .ui-menu-item:hover {
+    background: #f8f9fa;
+}
+
+/* Feature row styling */
+.acf-field-custom-features .acf-table {
+    border-spacing: 0;
+    border-collapse: separate;
+}
+
+.acf-field-custom-features .acf-row {
+    transition: background-color 0.2s ease;
+}
+
+.acf-field-custom-features .acf-row:hover {
+    background-color: rgba(255,255,255,0.7) !important;
+}
+
+/* Input field styling */
+.hph-feature-autocomplete {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.hph-feature-autocomplete:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+/* Validation styling */
+.hph-validation-error {
+    border-color: #dc3232 !important;
+}
+
+.hph-validation-error:focus {
+    box-shadow: 0 0 0 1px #dc3232 !important;
+}
+
+/* Category dropdown styling */
+.acf-field-custom-features select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+/* Highlight checkbox styling */
+.acf-field-custom-features .acf-true-false {
+    text-align: center;
+}
+
+/* Premium feature indicators */
+.hph-premium-feature {
+    position: relative;
+}
+
+.hph-premium-feature::after {
+    content: '★';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ffd700;
+    font-size: 14px;
+}

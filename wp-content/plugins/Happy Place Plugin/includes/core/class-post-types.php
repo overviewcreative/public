@@ -1,7 +1,6 @@
 <?php
 /**
  * File: includes/core/class-post-types.php
- * Cleaned Post Types Registration (removed redundant 'property' CPT)
  */
 
 namespace HappyPlace\Core;
@@ -21,8 +20,23 @@ class Post_Types {
     }
 
     private function __construct() {
-        add_action('init', [$this, 'register_post_types'], 0);
+        // Register post types on init with priority 5 (after taxonomies typically register at 0)
+        add_action('init', [$this, 'register_post_types'], 5);
         error_log('HPH: Post_Types constructor called');
+        
+        // Set up activation hook handler
+        add_action('happy_place_activated', [$this, 'flush_rules_on_activation']);
+    }
+
+    /**
+     * Handle rewrite rules flushing on activation
+     */
+    public function flush_rules_on_activation(): void {
+        // Register post types first
+        $this->register_post_types();
+        // Then flush the rules
+        error_log('HPH: Flushing rewrite rules on activation');
+        flush_rewrite_rules();
     }
 
     public function register_post_types(): void {
@@ -244,13 +258,56 @@ class Post_Types {
         ]);
 
         // Log registration results
-        error_log('HPH: Listing registered: ' . ($listing_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Agent registered: ' . ($agent_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Community registered: ' . ($community_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: City registered: ' . ($city_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Transaction registered: ' . ($transaction_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Open House registered: ' . ($open_house_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Local Place registered: ' . ($local_place_registered ? 'SUCCESS' : 'FAILED'));
-        error_log('HPH: Team registered: ' . ($team_registered ? 'SUCCESS' : 'FAILED'));
+        if (is_wp_error($listing_registered)) {
+            error_log('HPH: Error registering listing post type: ' . $listing_registered->get_error_message());
+        } else {
+            error_log('HPH: Listing post type registered successfully');
+        }
+
+        if (is_wp_error($agent_registered)) {
+            error_log('HPH: Error registering agent post type: ' . $agent_registered->get_error_message());
+        } else {
+            error_log('HPH: Agent post type registered successfully');
+        }
+
+        if (is_wp_error($community_registered)) {
+            error_log('HPH: Error registering community post type: ' . $community_registered->get_error_message());
+        } else {
+            error_log('HPH: Community post type registered successfully');
+        }
+
+        if (is_wp_error($city_registered)) {
+            error_log('HPH: Error registering city post type: ' . $city_registered->get_error_message());
+        } else {
+            error_log('HPH: City post type registered successfully');
+        }
+
+        if (is_wp_error($transaction_registered)) {
+            error_log('HPH: Error registering transaction post type: ' . $transaction_registered->get_error_message());
+        } else {
+            error_log('HPH: Transaction post type registered successfully');
+        }
+
+        if (is_wp_error($open_house_registered)) {
+            error_log('HPH: Error registering open house post type: ' . $open_house_registered->get_error_message());
+        } else {
+            error_log('HPH: Open house post type registered successfully');
+        }
+
+        if (is_wp_error($local_place_registered)) {
+            error_log('HPH: Error registering local place post type: ' . $local_place_registered->get_error_message());
+        } else {
+            error_log('HPH: Local place post type registered successfully');
+        }
+
+        if (is_wp_error($team_registered)) {
+            error_log('HPH: Error registering team post type: ' . $team_registered->get_error_message());
+        } else {
+            error_log('HPH: Team post type registered successfully');
+        }
+
+        // Log all registered post types
+        $registered_types = get_post_types(['_builtin' => false], 'names');
+        error_log('HPH: All registered custom post types: ' . implode(', ', $registered_types));
     }
 }

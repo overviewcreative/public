@@ -6,11 +6,21 @@
             "key": "field_transaction_listing",
             "label": "Related Listing",
             "name": "related_listing",
-            "type": "post_object",
+            "type": "relationship",
+            "instructions": "Select the listing this transaction is for",
+            "required": 1,
             "post_type": [
                 "listing"
             ],
-            "return_format": "id"
+            "filters": [
+                "search"
+            ],
+            "elements": [
+                "featured_image"
+            ],
+            "min": 1,
+            "max": 1,
+            "return_format": "object"
         },
         {
             "key": "field_transaction_agent",

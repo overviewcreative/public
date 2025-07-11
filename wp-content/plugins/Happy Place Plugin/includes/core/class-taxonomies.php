@@ -8,12 +8,37 @@ class Taxonomies {
 
     // Define taxonomy configurations
     private $taxonomies = [
+        'property_feature' => [
+            'post_types' => ['listing'],
+            'args' => [
+                'hierarchical' => true,
+                'public' => true,
+                'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'feature'],
+            ],
+            'labels' => [
+                'name' => 'Property Features',
+                'singular_name' => 'Property Feature',
+                'menu_name' => 'Features',
+                'search_items' => 'Search Features',
+                'all_items' => 'All Features',
+                'parent_item' => 'Parent Feature',
+                'parent_item_colon' => 'Parent Feature:',
+                'edit_item' => 'Edit Feature',
+                'update_item' => 'Update Feature',
+                'add_new_item' => 'Add New Feature',
+                'new_item_name' => 'New Feature Name',
+            ]
+        ],
         'property_type' => [
             'post_types' => ['listing'],
             'args' => [
                 'hierarchical' => true,
                 'public' => true,
                 'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'type'],
             ],
             'labels' => [
                 'name' => 'Property Types',
@@ -21,35 +46,33 @@ class Taxonomies {
                 'menu_name' => 'Property Types',
                 'search_items' => 'Search Property Types',
                 'all_items' => 'All Property Types',
+                'parent_item' => 'Parent Type',
+                'parent_item_colon' => 'Parent Type:',
                 'edit_item' => 'Edit Property Type',
                 'update_item' => 'Update Property Type',
                 'add_new_item' => 'Add New Property Type',
                 'new_item_name' => 'New Property Type Name',
-                'separate_items_with_commas' => 'Separate property types with commas',
-                'add_or_remove_items' => 'Add or remove property types',
-                'choose_from_most_used' => 'Choose from the most used property types',
             ]
         ],
-        'listing_status' => [
+        'property_status' => [
             'post_types' => ['listing'],
             'args' => [
                 'hierarchical' => true,
                 'public' => true,
                 'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'status'],
             ],
             'labels' => [
-                'name' => 'Listing Statuses',
-                'singular_name' => 'Listing Status',
-                'menu_name' => 'Listing Statuses',
-                'search_items' => 'Search Listing Statuses',
-                'all_items' => 'All Listing Statuses',
-                'edit_item' => 'Edit Listing Status',
-                'update_item' => 'Update Listing Status',
-                'add_new_item' => 'Add New Listing Status',
-                'new_item_name' => 'New Listing Status Name',
-                'separate_items_with_commas' => 'Separate listing statuses with commas',
-                'add_or_remove_items' => 'Add or remove listing statuses',
-                'choose_from_most_used' => 'Choose from the most used listing statuses',
+                'name' => 'Property Status',
+                'singular_name' => 'Status',
+                'menu_name' => 'Status',
+                'search_items' => 'Search Statuses',
+                'all_items' => 'All Statuses',
+                'edit_item' => 'Edit Status',
+                'update_item' => 'Update Status',
+                'add_new_item' => 'Add New Status',
+                'new_item_name' => 'New Status Name',
             ]
         ],
         'agent_specialty' => [
@@ -58,90 +81,116 @@ class Taxonomies {
                 'hierarchical' => false,
                 'public' => true,
                 'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'specialty'],
             ],
             'labels' => [
                 'name' => 'Agent Specialties',
                 'singular_name' => 'Agent Specialty',
-                'menu_name' => 'Agent Specialties',
+                'menu_name' => 'Specialties',
                 'search_items' => 'Search Specialties',
                 'all_items' => 'All Specialties',
                 'edit_item' => 'Edit Specialty',
                 'update_item' => 'Update Specialty',
                 'add_new_item' => 'Add New Specialty',
                 'new_item_name' => 'New Specialty Name',
-                'separate_items_with_commas' => 'Separate specialties with commas',
-                'add_or_remove_items' => 'Add or remove specialties',
-                'choose_from_most_used' => 'Choose from the most used specialties',
             ]
         ],
-        'community_amenities' => [
+        'community_amenity' => [
             'post_types' => ['community'],
             'args' => [
-                'hierarchical' => false,
+                'hierarchical' => true,
                 'public' => true,
                 'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'amenity'],
             ],
             'labels' => [
                 'name' => 'Community Amenities',
-                'singular_name' => 'Community Amenity',
-                'menu_name' => 'Community Amenities',
+                'singular_name' => 'Amenity',
+                'menu_name' => 'Amenities',
                 'search_items' => 'Search Amenities',
                 'all_items' => 'All Amenities',
+                'parent_item' => 'Parent Amenity',
+                'parent_item_colon' => 'Parent Amenity:',
                 'edit_item' => 'Edit Amenity',
                 'update_item' => 'Update Amenity',
                 'add_new_item' => 'Add New Amenity',
                 'new_item_name' => 'New Amenity Name',
-                'separate_items_with_commas' => 'Separate amenities with commas',
-                'add_or_remove_items' => 'Add or remove amenities',
-                'choose_from_most_used' => 'Choose from the most used amenities',
             ]
         ],
-        'city_highlights' => [
-            'post_types' => ['city'],
+        'place_category' => [
+            'post_types' => ['local-place'],
             'args' => [
-                'hierarchical' => false,
+                'hierarchical' => true,
                 'public' => true,
                 'show_in_rest' => true,
+                'show_admin_column' => true,
+                'rewrite' => ['slug' => 'place-category'],
             ],
             'labels' => [
-                'name' => 'City Highlights',
-                'singular_name' => 'City Highlight',
-                'menu_name' => 'City Highlights',
-                'search_items' => 'Search Highlights',
-                'all_items' => 'All Highlights',
-                'edit_item' => 'Edit Highlight',
-                'update_item' => 'Update Highlight',
-                'add_new_item' => 'Add New Highlight',
-                'new_item_name' => 'New Highlight Name',
-                'separate_items_with_commas' => 'Separate highlights with commas',
-                'add_or_remove_items' => 'Add or remove highlights',
-                'choose_from_most_used' => 'Choose from the most used highlights',
+                'name' => 'Place Categories',
+                'singular_name' => 'Category',
+                'menu_name' => 'Categories',
+                'search_items' => 'Search Categories',
+                'all_items' => 'All Categories',
+                'parent_item' => 'Parent Category',
+                'parent_item_colon' => 'Parent Category:',
+                'edit_item' => 'Edit Category',
+                'update_item' => 'Update Category',
+                'add_new_item' => 'Add New Category',
+                'new_item_name' => 'New Category Name',
             ]
         ]
     ];
 
     public static function get_instance(): self {
-        return self::$instance ??= new self();
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 
     private function __construct() {
-        \add_action('init', [$this, 'register_taxonomies'], 10);
-        \add_action('init', [$this, 'add_taxonomy_filters'], 20);
+        // Register taxonomies early on init
+        add_action('init', [$this, 'register_taxonomies'], 0);
+        
+        // Log registration for debugging
+        add_action('init', [$this, 'log_registered_taxonomies'], 1);
     }
 
     /**
-     * Register all custom taxonomies
+     * Register all taxonomies
      */
     public function register_taxonomies(): void {
         foreach ($this->taxonomies as $taxonomy => $config) {
-            $labels = $config['labels'];
             $args = array_merge([
-                'labels' => $labels,
-                'rewrite' => ['slug' => $taxonomy],
+                'labels' => $config['labels'],
+                'public' => true,
+                'show_ui' => true,
+                'show_in_nav_menus' => true,
+                'show_tagcloud' => true,
+                'show_in_quick_edit' => true,
+                'show_admin_column' => true,
+                'query_var' => true,
             ], $config['args']);
 
-            register_taxonomy($taxonomy, $config['post_types'], $args);
+            $result = register_taxonomy($taxonomy, $config['post_types'], $args);
+            
+            if (is_wp_error($result)) {
+                error_log('HPH: Error registering taxonomy ' . $taxonomy . ': ' . $result->get_error_message());
+            } else {
+                error_log('HPH: Successfully registered taxonomy: ' . $taxonomy);
+            }
         }
+    }
+
+    /**
+     * Log all registered taxonomies for debugging
+     */
+    public function log_registered_taxonomies(): void {
+        $taxonomies = get_taxonomies(['_builtin' => false], 'names');
+        error_log('HPH: All registered custom taxonomies: ' . implode(', ', $taxonomies));
     }
 
     /**

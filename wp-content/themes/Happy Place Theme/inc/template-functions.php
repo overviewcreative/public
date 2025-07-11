@@ -49,3 +49,31 @@ function happy_place_disable_emojis() {
     remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
 }
 add_action('init', 'happy_place_disable_emojis');
+
+/**
+ * Get listing data for map marker
+ */
+function hph_get_listing_map_data($post_id) {
+    $status = get_field('status', $post_id);
+    $status = is_array($status) ? $status[0] : $status;
+    
+    return [
+        'id' => $post_id,
+        'title' => get_the_title($post_id),
+        'price' => get_field('price', $post_id),
+        'bedrooms' => get_field('bedrooms', $post_id),
+        'bathrooms' => hph_get_listing_bathrooms($post_id),
+        'square_footage' => get_field('square_footage', $post_id),
+        'status' => $status,
+        'latitude' => floatval(get_field('latitude', $post_id)),
+        'longitude' => floatval(get_field('longitude', $post_id)),
+        'permalink' => get_permalink($post_id),
+        'address' => hph_format_listing_address($post_id),
+        'photo' => hph_get_listing_photo($post_id, 'medium'),
+        'property_type' => get_field('property_type', $post_id),
+        'lot_size' => get_field('lot_size', $post_id),
+        'year_built' => get_field('year_built', $post_id),
+        'price_per_sqft' => get_field('price_per_sqft', $post_id),
+        'highlight_badges' => get_field('highlight_badges', $post_id),
+    ];
+}
