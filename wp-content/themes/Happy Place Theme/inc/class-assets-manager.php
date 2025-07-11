@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Assets Manager - Compatible with existing structure
  * 
@@ -15,25 +16,29 @@ if (!defined('HAPPY_PLACE_THEME_URI')) {
     define('HAPPY_PLACE_THEME_URI', get_template_directory_uri());
 }
 
-class HPH_Assets_Manager {
+class HPH_Assets_Manager
+{
     private static ?self $instance = null;
-    
-    public static function instance(): self {
+
+    public static function instance(): self
+    {
         return self::$instance ??= new self();
     }
-    
-    private function __construct() {
+
+    private function __construct()
+    {
         add_action('wp_enqueue_scripts', [$this, 'register_scripts']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
         add_filter('script_loader_tag', [$this, 'add_async_defer'], 10, 2);
     }
-    
+
     /**
      * Register scripts - matches your existing pattern
      */
-    public function register_scripts(): void {
+    public function register_scripts(): void
+    {
         // Register Google Maps
         $maps_api_key = get_option('hph_google_maps_api_key') ?: get_theme_mod('google_maps_api_key');
         if ($maps_api_key) {
@@ -55,13 +60,15 @@ class HPH_Assets_Manager {
             );
         }
     }
-    
+
     /**
      * Enqueue styles - combines your existing + original theme styles
      */
-    public function enqueue_styles(): void {
+    public function enqueue_styles(): void
+    {
         // Font Awesome (from original theme)
-        wp_enqueue_style('font-awesome', 
+        wp_enqueue_style(
+            'font-awesome',
             'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css',
             [],
             '6.4.2'
@@ -128,7 +135,7 @@ class HPH_Assets_Manager {
                 if ($handle === 'happy-place-map-clusters') {
                     $deps[] = 'happy-place-map-info-window';
                 }
-                
+
                 wp_enqueue_style(
                     $handle,
                     HAPPY_PLACE_THEME_URI . $path,
@@ -148,11 +155,12 @@ class HPH_Assets_Manager {
             );
         }
     }
-    
+
     /**
      * Enqueue scripts - combines your existing + original theme scripts
      */
-    public function enqueue_scripts(): void {
+    public function enqueue_scripts(): void
+    {
         // Core scripts (your existing)
         if (file_exists(HAPPY_PLACE_THEME_DIR . '/assets/js/core.js')) {
             wp_enqueue_script(
@@ -236,11 +244,12 @@ class HPH_Assets_Manager {
         // Localize scripts
         $this->localize_scripts();
     }
-    
+
     /**
      * Localize scripts with theme data
      */
-    private function localize_scripts(): void {
+    private function localize_scripts(): void
+    {
         // Localize core script
         if (wp_script_is('happy-place-core', 'enqueued')) {
             wp_localize_script('happy-place-core', 'happyplace', [
@@ -294,14 +303,15 @@ class HPH_Assets_Manager {
             ]);
         }
     }
-    
+
     /**
      * Enqueue admin assets
      */
-    public function enqueue_admin_assets(): void {
+    public function enqueue_admin_assets(): void
+    {
         $screen = get_current_screen();
         if (!$screen) return;
-        
+
         if ($screen->post_type === 'listing') {
             wp_enqueue_script(
                 'hph-listing-admin',
@@ -310,21 +320,95 @@ class HPH_Assets_Manager {
                 filemtime(HAPPY_PLACE_THEME_DIR . '/assets/js/admin/listing-admin.js'),
                 true
             );
-            
+
             wp_localize_script('hph-listing-admin', 'hphAdmin', [
                 'nonce' => wp_create_nonce('hph_admin_nonce')
             ]);
         }
     }
-    
+
     /**
      * Add async/defer attributes to specific scripts
      */
-    public function add_async_defer(string $tag, string $handle): string {
+    public function add_async_defer(string $tag, string $handle): string
+    {
         if ('google-maps' === $handle) {
             return str_replace(' src', ' async defer src', $tag);
         }
         return $tag;
+    }
+
+    /**
+     * Add custom CSS variables for dashboard theming
+     */
+    private function get_dashboard_css_vars(): string
+    {
+        return '
+            :root {
+                --primary-color: #007bff;
+                --secondary-color: #6c757d;
+                --success-color: #28a745;
+                --danger-color: #dc3545;
+                --warning-color: #ffc107;
+                --info-color: #17a2b8;
+                
+                --border-color: #dee2e6;
+                --text-color: #212529;
+                --text-muted: #6c757d;
+                --text-light: #f8f9fa;
+                --text-dark: #343a40;
+                
+                --bg-light: #f8f9fa;
+                --bg-dark: #343a40;
+                --bg-white: #ffffff;
+                --bg-muted: #e9ecef;
+                
+                --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+                
+                --radius-sm: 0.2rem;
+                --radius: 0.375rem;
+                --radius-lg: 0.5rem;
+                
+                --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            }
+        ';
+    }
+
+    /**
+     * Enqueue dashboard styles and scripts
+     */
+    public function enqueue_dashboard_assets(): void
+    {
+        if (!is_page_template('templates/agent-dashboard.php') && !hph_is_dashboard()) {
+            return;
+        }
+
+        $theme_uri = HAPPY_PLACE_THEME_URI;
+        $version = wp_get_theme()->get('Version');
+
+        // Base dashboard styles (load these first)
+        wp_enqueue_style('happyplace-dashboard-utilities', $theme_uri . '/assets/css/dashboard-utilities.css', [], $version);
+        wp_enqueue_style('happyplace-dashboard-components', $theme_uri . '/assets/css/dashboard-components.css', ['happyplace-dashboard-utilities'], $version);
+        wp_enqueue_style('happyplace-dashboard-main', $theme_uri . '/assets/css/dashboard-main.css', ['happyplace-dashboard-components'], $version);
+
+        // Add custom CSS variables
+        wp_add_inline_style('happyplace-dashboard-main', $this->get_dashboard_css_vars());
+
+        // Additional dashboard styles
+        wp_enqueue_style('happyplace-dashboard-forms', $theme_uri . '/assets/css/dashboard-forms.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style('happyplace-dashboard-modals', $theme_uri . '/assets/css/dashboard-modals.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style('happyplace-dashboard-sections', $theme_uri . '/assets/css/dashboard-sections.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style('happyplace-dashboard-loading', $theme_uri . '/assets/css/dashboard-loading.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style('happyplace-dashboard-responsive', $theme_uri . '/assets/css/dashboard-responsive.css', ['happyplace-dashboard-main'], $version);
+
+        // Dashboard JavaScript
+        wp_enqueue_script('happyplace-dashboard', $theme_uri . '/assets/js/dashboard.js', ['jquery'], $version, true);
+        wp_localize_script('happyplace-dashboard', 'happyplaceDashboard', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('happyplace_dashboard_nonce')
+        ]);
     }
 }
 

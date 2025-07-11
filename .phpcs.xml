@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Theme Coding Standards">
+    <description>A custom set of code standard rules for WordPress themes.</description>
+
+    <!-- What to scan -->
+    <file>.</file>
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/wp-admin/*</exclude-pattern>
+    <exclude-pattern>/wp-includes/*</exclude-pattern>
+    <exclude-pattern>/wp-*.php</exclude-pattern>
+    <exclude-pattern>/index.php</exclude-pattern>
+    <exclude-pattern>/xmlrpc.php</exclude-pattern>
+    <exclude-pattern>*.js</exclude-pattern>
+    <exclude-pattern>*.css</exclude-pattern>
+
+    <!-- Rules -->
+    <rule ref="WordPress">
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+
+    <!-- Show sniff codes in all reports -->
+    <arg value="ps"/>
+    <arg name="colors"/>
+
+    <!-- Allow short array syntax -->
+    <rule ref="Generic.Arrays.DisallowShortArraySyntax.Found">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Custom function prefixes -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="hph"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- External Plugin Function Whitelist -->
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <properties>
+            <property name="custom_test_class_whitelist" type="array">
+                <element value="ACF"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Add ACF and other common plugin functions to whitelist -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <properties>
+            <property name="customAutoEscapedFunctions" type="array" extend="true">
+                <element value="get_field"/>
+                <element value="get_sub_field"/>
+                <element value="the_field"/>
+                <element value="the_sub_field"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>
