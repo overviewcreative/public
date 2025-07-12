@@ -92,6 +92,9 @@ class HPH_Assets_Manager
             );
         }
 
+        // Load dashboard styles when needed
+        $this->enqueue_dashboard_styles();
+
         // Listing styles (your existing)
         if (file_exists(HAPPY_PLACE_THEME_DIR . '/assets/css/listing.css')) {
             wp_enqueue_style(
@@ -157,6 +160,41 @@ class HPH_Assets_Manager
     }
 
     /**
+     * Enqueue dashboard styles when needed
+     */
+    private function enqueue_dashboard_styles(): void
+    {
+        if (!hph_is_dashboard()) {
+            return;
+        }
+
+        $dashboard_styles = [
+            'variables' => 'dashboard-variables.css',
+            'utilities' => 'dashboard-utilities.css',
+            'components' => 'dashboard-components.css',
+            'tabs' => 'dashboard-tabs.css',
+            'sections' => 'dashboard-sections.css',
+            'forms' => 'dashboard-forms.css',
+            'modals' => 'dashboard-modals.css',
+            'loading' => 'dashboard-loading.css',
+            'responsive' => 'dashboard-responsive.css',
+            'main' => 'dashboard-main.css'
+        ];
+
+        foreach ($dashboard_styles as $key => $file) {
+            $path = HAPPY_PLACE_THEME_DIR . '/assets/css/' . $file;
+            if (file_exists($path)) {
+                wp_enqueue_style(
+                    'happy-place-dashboard-' . $key,
+                    HAPPY_PLACE_THEME_URI . '/assets/css/' . $file,
+                    ['happy-place-core'],
+                    filemtime($path)
+                );
+            }
+        }
+    }
+
+    /**
      * Enqueue scripts - combines your existing + original theme scripts
      */
     public function enqueue_scripts(): void
@@ -170,6 +208,30 @@ class HPH_Assets_Manager
                 filemtime(HAPPY_PLACE_THEME_DIR . '/assets/js/core.js'),
                 true
             );
+        }
+
+        // Dashboard scripts (load only on dashboard)
+        if (hph_is_dashboard()) {
+            // Dashboard tabs
+            if (file_exists(HAPPY_PLACE_THEME_DIR . '/assets/js/dashboard-tabs.js')) {
+                wp_enqueue_script(
+                    'happy-place-dashboard-tabs',
+                    HAPPY_PLACE_THEME_URI . '/assets/js/dashboard-tabs.js',
+                    ['jquery'],
+                    filemtime(HAPPY_PLACE_THEME_DIR . '/assets/js/dashboard-tabs.js'),
+                    true
+                );
+
+                // Localize script with AJAX URL and nonce
+                wp_localize_script(
+                    'happy-place-dashboard-tabs',
+                    'dashboardAjax',
+                    [
+                        'ajaxUrl' => admin_url('admin-ajax.php'),
+                        'nonce' => wp_create_nonce('hph_dashboard_nonce')
+                    ]
+                );
+            }
         }
 
         // Theme scripts (your existing)
@@ -389,19 +451,25 @@ class HPH_Assets_Manager
         $version = wp_get_theme()->get('Version');
 
         // Base dashboard styles (load these first)
-        wp_enqueue_style('happyplace-dashboard-utilities', $theme_uri . '/assets/css/dashboard-utilities.css', [], $version);
+        wp_enqueue_style('happyplace-dashboard-variables', $theme_uri . '/assets/css/dashboard-variables.css', [], $version);
+        wp_enqueue_style('happyplace-dashboard-utilities', $theme_uri . '/assets/css/dashboard-utilities.css', ['happyplace-dashboard-variables'], $version);
         wp_enqueue_style('happyplace-dashboard-components', $theme_uri . '/assets/css/dashboard-components.css', ['happyplace-dashboard-utilities'], $version);
         wp_enqueue_style('happyplace-dashboard-main', $theme_uri . '/assets/css/dashboard-main.css', ['happyplace-dashboard-components'], $version);
 
         // Add custom CSS variables
         wp_add_inline_style('happyplace-dashboard-main', $this->get_dashboard_css_vars());
 
-        // Additional dashboard styles
+        // Additional dashboard styles in correct order
         wp_enqueue_style('happyplace-dashboard-forms', $theme_uri . '/assets/css/dashboard-forms.css', ['happyplace-dashboard-main'], $version);
         wp_enqueue_style('happyplace-dashboard-modals', $theme_uri . '/assets/css/dashboard-modals.css', ['happyplace-dashboard-main'], $version);
-        wp_enqueue_style('happyplace-dashboard-sections', $theme_uri . '/assets/css/dashboard-sections.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style('happyplace-dashboard-sections', $theme_uri . '/assets/css/dashboard-sections.css', ['happyplace-dashboard-main', 'happyplace-dashboard-forms', 'happyplace-dashboard-modals'], $version);
         wp_enqueue_style('happyplace-dashboard-loading', $theme_uri . '/assets/css/dashboard-loading.css', ['happyplace-dashboard-main'], $version);
-        wp_enqueue_style('happyplace-dashboard-responsive', $theme_uri . '/assets/css/dashboard-responsive.css', ['happyplace-dashboard-main'], $version);
+        wp_enqueue_style(
+            'happyplace-dashboard-responsive',
+            $theme_uri . '/assets/css/dashboard-responsive.css',
+            ['happyplace-dashboard-main', 'happyplace-dashboard-forms', 'happyplace-dashboard-modals', 'happyplace-dashboard-sections'],
+            $version
+        );
 
         // Dashboard JavaScript
         wp_enqueue_script('happyplace-dashboard', $theme_uri . '/assets/js/dashboard.js', ['jquery'], $version, true);

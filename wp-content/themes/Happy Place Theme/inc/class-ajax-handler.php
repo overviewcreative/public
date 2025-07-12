@@ -316,39 +316,165 @@ class HPH_Ajax_Handler
     }
 
     /**
-     * ADDITIONAL: Dashboard section loading
+     * ADDITIONAL: Dashboard section loading - Enhanced to handle forms and sections
      */
     public function load_dashboard_section(): void
     {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'hph_dashboard_nonce')) {
-            wp_die(__('Security check failed.', 'happy-place'));
+        if (!check_ajax_referer('hph_dashboard_nonce', 'nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid security token']);
+            return;
         }
 
-        // Check user permissions
-        if (!hph_can_access_dashboard()) {
-            wp_send_json_error(__('Access denied.', 'happy-place'));
+        // Get requested section and action
+        $section = isset($_POST['section']) ? sanitize_key($_POST['section']) : '';
+        $action = isset($_POST['action_type']) ? sanitize_key($_POST['action_type']) : '';
+
+        if (!$section) {
+            wp_send_json_error(['message' => 'No section specified']);
+            return;
         }
 
-        $section = sanitize_text_field($_POST['section']);
-        $allowed_sections = ['overview', 'listings', 'open-houses', 'performance', 'leads', 'team', 'profile'];
+        // Allowed sections and actions
+        $allowed_sections = ['overview', 'listings', 'leads', 'profile', 'settings'];
+        $allowed_actions = ['new-listing', 'edit-listing', 'new-open-house', 'edit-open-house', 'new-lead', 'edit-lead'];
+
+        // Add cache section for administrators
+        if (current_user_can('manage_options')) {
+            $allowed_sections[] = 'cache';
+        }
 
         if (!in_array($section, $allowed_sections)) {
-            wp_send_json_error(__('Invalid section.', 'happy-place'));
+            wp_send_json_error(['message' => 'Invalid section']);
+            return;
         }
 
-        // Load section template
+        // Get section content
         ob_start();
-        $template_path = get_template_directory() . "/templates/dashboard/{$section}.php";
 
-        if (file_exists($template_path)) {
-            include $template_path;
-            $html = ob_get_clean();
-            wp_send_json_success(['html' => $html]);
+        // Check if we're loading a form or a section
+        if (!empty($action) && in_array($action, $allowed_actions)) {
+            // Load form template
+            switch ($action) {
+                case 'new-listing':
+                case 'edit-listing':
+                    get_template_part('template-parts/dashboard/form', 'listing', [
+                        'action' => $action,
+                        'listing_id' => isset($_POST['listing_id']) ? absint($_POST['listing_id']) : 0
+                    ]);
+                    break;
+
+                case 'new-open-house':
+                case 'edit-open-house':
+                    get_template_part('template-parts/dashboard/form', 'open-house', [
+                        'action' => $action,
+                        'open_house_id' => isset($_POST['open_house_id']) ? absint($_POST['open_house_id']) : 0
+                    ]);
+                    break;
+
+                case 'new-lead':
+                case 'edit-lead':
+                    get_template_part('template-parts/dashboard/form', 'lead', [
+                        'action' => $action,
+                        'lead_id' => isset($_POST['lead_id']) ? absint($_POST['lead_id']) : 0
+                    ]);
+                    break;
+
+                default:
+                    // Fallback to section
+                    get_template_part('template-parts/dashboard/section', $section, [
+                        'section_data' => self::get_section_data($section)
+                    ]);
+                    break;
+            }
         } else {
-            ob_end_clean();
-            wp_send_json_error(__('Template not found.', 'happy-place'));
+            // Load regular section
+            get_template_part('template-parts/dashboard/section', $section, [
+                'section_data' => self::get_section_data($section)
+            ]);
         }
+
+        $content = ob_get_clean();
+
+        // Get section title
+        $nav_items = [
+            'overview' => __('Overview', 'happy-place'),
+            'listings' => __('Listings', 'happy-place'),
+            'leads' => __('Leads', 'happy-place'),
+            'profile' => __('Profile', 'happy-place'),
+            'settings' => __('Settings', 'happy-place'),
+            'cache' => __('Cache Management', 'happy-place')
+        ];
+
+        // Get title based on action or section
+        $title = $nav_items[$section] ?? __('Dashboard', 'happy-place');
+        if (!empty($action)) {
+            switch ($action) {
+                case 'new-listing':
+                    $title = __('Add New Listing', 'happy-place');
+                    break;
+                case 'edit-listing':
+                    $title = __('Edit Listing', 'happy-place');
+                    break;
+                case 'new-open-house':
+                    $title = __('Add New Open House', 'happy-place');
+                    break;
+                case 'edit-open-house':
+                    $title = __('Edit Open House', 'happy-place');
+                    break;
+                case 'new-lead':
+                    $title = __('Add New Lead', 'happy-place');
+                    break;
+                case 'edit-lead':
+                    $title = __('Edit Lead', 'happy-place');
+                    break;
+            }
+        }
+
+        wp_send_json_success([
+            'content' => $content,
+            'title' => $title,
+            'section' => $section,
+            'action' => $action
+        ]);
+    }
+
+    /**
+     * Get data for a dashboard section
+     */
+    public static function get_section_data(string $section): array
+    {
+        $data = [];
+
+        switch ($section) {
+            case 'overview':
+                $data = [
+                    'active_listings' => self::get_agent_listing_count('publish'),
+                    'pending_listings' => self::get_agent_listing_count('pending'),
+                    'total_leads' => self::get_agent_lead_count(),
+                    'recent_activity' => self::get_recent_activity()
+                ];
+                break;
+
+            case 'listings':
+                $data = [
+                    'listings' => self::get_agent_listings()
+                ];
+                break;
+
+            case 'leads':
+                $data = [
+                    'leads' => self::get_agent_leads()
+                ];
+                break;
+
+            case 'cache':
+                // Cache management data (only for administrators)
+                $data = [];
+                break;
+        }
+
+        return $data;
     }
 
     /**
@@ -798,6 +924,88 @@ class HPH_Ajax_Handler
             ])),
             // Add more stats as needed
         ];
+    }
+
+    /**
+     * Get agent listing count by status
+     */
+    private static function get_agent_listing_count(string $status = ''): int
+    {
+        $args = [
+            'post_type' => 'listing',
+            'author' => get_current_user_id(),
+            'posts_per_page' => -1,
+            'fields' => 'ids'
+        ];
+
+        if ($status) {
+            $args['post_status'] = $status === 'active' ? 'publish' : $status;
+        } else {
+            $args['post_status'] = 'publish';
+        }
+
+        $posts = get_posts($args);
+        return count($posts);
+    }
+
+    /**
+     * Get agent lead count
+     */
+    private static function get_agent_lead_count(): int
+    {
+        // This would typically query a leads table or custom post type
+        // For now, return a placeholder value
+        return 0;
+    }
+
+    /**
+     * Get recent activity for agent
+     */
+    private static function get_recent_activity(): array
+    {
+        // This would typically get recent actions, logins, etc.
+        // For now, return an empty array
+        return [];
+    }
+
+    /**
+     * Get agent listings
+     */
+    private static function get_agent_listings(): array
+    {
+        $args = [
+            'post_type' => 'listing',
+            'author' => get_current_user_id(),
+            'posts_per_page' => 10,
+            'post_status' => 'publish'
+        ];
+
+        $posts = get_posts($args);
+        $listings = [];
+
+        foreach ($posts as $post) {
+            $listings[] = [
+                'id' => $post->ID,
+                'title' => $post->post_title,
+                'status' => get_post_status($post->ID),
+                'price' => get_field('price', $post->ID),
+                'address' => get_field('address', $post->ID),
+                'edit_url' => get_edit_post_link($post->ID),
+                'view_url' => get_permalink($post->ID)
+            ];
+        }
+
+        return $listings;
+    }
+
+    /**
+     * Get agent leads
+     */
+    private static function get_agent_leads(): array
+    {
+        // This would typically query a leads table or custom post type
+        // For now, return an empty array
+        return [];
     }
 }
 

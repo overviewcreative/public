@@ -3,27 +3,41 @@
 /**
  * Template Name: Agent Dashboard
  * 
- * Updated template for the Happy Place Real Estate Platform Agent Dashboard
- * Designed to work with the new CSS design system
- * 
+ * This template is used for displaying the agent dashboard.
+ *
  * @package HappyPlace
- * @version 2.0.0
  */
 
-if (!defined('ABSPATH')) {
-    exit;
+get_header();
+
+// Verify user is logged in and has appropriate permissions
+if (!is_user_logged_in() || (!current_user_can('agent') && !current_user_can('administrator'))) {
+?>
+    <div class="hph-container">
+        <div class="hph-error">
+            <p><?php _e('You must be logged in as an agent to view this page.', 'happy-place'); ?></p>
+            <p><a href="<?php echo esc_url(wp_login_url(get_permalink())); ?>" class="hph-button"><?php _e('Log In', 'happy-place'); ?></a></p>
+        </div>
+    </div>
+<?php
+    get_footer();
+    return;
 }
 
-// Security check - redirect non-agents
-if (!current_user_can('agent') && !current_user_can('administrator')) {
-    wp_redirect(home_url());
-    exit;
+// Get the current tab/section and action
+$current_section = isset($_GET['section']) ? sanitize_key($_GET['section']) : 'overview';
+$current_action = isset($_GET['action']) ? sanitize_key($_GET['action']) : '';
+$allowed_sections = ['overview', 'listings', 'leads', 'profile', 'settings'];
+$allowed_actions = ['new-listing', 'edit-listing', 'new-open-house', 'edit-open-house', 'new-lead', 'edit-lead'];
+
+// Add cache section for administrators
+if (current_user_can('manage_options')) {
+    $allowed_sections[] = 'cache';
 }
 
-// Initialize dashboard state
-$current_section = function_exists('hph_get_dashboard_section') ? hph_get_dashboard_section() : 'overview';
-$action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
-$item_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if (!in_array($current_section, $allowed_sections)) {
+    $current_section = 'overview';
+}
 
 // Get current agent data
 $current_agent_id = get_current_user_id();
@@ -36,66 +50,32 @@ if (function_exists('get_fields')) {
     $agent_data = is_array($user_fields) ? $user_fields : [];
 }
 
-// Set up agent display data with fallbacks
-$agent_name = $agent_data['name'] ?? $agent_data['first_name'] ?? $current_user->display_name ?? 'Agent';
-$agent_title = $agent_data['title'] ?? $agent_data['position'] ?? __('Real Estate Agent', 'happy-place');
-$agent_email = $agent_data['email'] ?? $current_user->user_email;
-$agent_phone = $agent_data['phone'] ?? '';
-$agent_photo = $agent_data['agent_photo'] ?? $agent_data['photo'] ?? '';
-
-// Get dashboard stats
-$stats = [];
-if (function_exists('hph_get_agent_stats')) {
-    $stats = hph_get_agent_stats($current_agent_id);
-} else {
-    // Fallback stats
-    $stats = [
-        'active_listings' => get_posts(['author' => $current_agent_id, 'post_type' => 'listing', 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids']),
-        'pending_listings' => get_posts(['author' => $current_agent_id, 'post_type' => 'listing', 'post_status' => 'pending', 'numberposts' => -1, 'fields' => 'ids']),
-        'total_views' => get_user_meta($current_agent_id, 'total_listing_views', true) ?: 0,
-        'leads_this_month' => get_user_meta($current_agent_id, 'leads_this_month', true) ?: 0,
-    ];
-
-    $stats['active_listings'] = is_array($stats['active_listings']) ? count($stats['active_listings']) : 0;
-    $stats['pending_listings'] = is_array($stats['pending_listings']) ? count($stats['pending_listings']) : 0;
-}
-
 // Navigation items configuration
 $nav_items = [
     'overview' => [
-        'icon' => 'fa-tachometer-alt',
+        'icon' => 'fa-home',
         'label' => __('Overview', 'happy-place'),
         'description' => __('Dashboard overview and quick stats', 'happy-place')
     ],
     'listings' => [
-        'icon' => 'fa-home',
-        'label' => __('My Listings', 'happy-place'),
+        'icon' => 'fa-list',
+        'label' => __('Listings', 'happy-place'),
         'description' => __('Manage your property listings', 'happy-place')
-    ],
-    'open-houses' => [
-        'icon' => 'fa-calendar-alt',
-        'label' => __('Open Houses', 'happy-place'),
-        'description' => __('Schedule and manage open houses', 'happy-place')
-    ],
-    'performance' => [
-        'icon' => 'fa-chart-line',
-        'label' => __('Performance', 'happy-place'),
-        'description' => __('View analytics and performance metrics', 'happy-place')
     ],
     'leads' => [
         'icon' => 'fa-users',
         'label' => __('Leads', 'happy-place'),
         'description' => __('Manage leads and inquiries', 'happy-place')
     ],
-    'team' => [
-        'icon' => 'fa-user-friends',
-        'label' => __('Team', 'happy-place'),
-        'description' => __('Collaborate with team members', 'happy-place')
-    ],
     'profile' => [
-        'icon' => 'fa-user-edit',
+        'icon' => 'fa-user',
         'label' => __('Profile', 'happy-place'),
         'description' => __('Edit your agent profile', 'happy-place')
+    ],
+    'settings' => [
+        'icon' => 'fa-gear',
+        'label' => __('Settings', 'happy-place'),
+        'description' => __('Manage your preferences', 'happy-place')
     ]
 ];
 
@@ -123,181 +103,154 @@ get_header();
 do_action('hph_before_dashboard');
 ?>
 
-<!-- Dashboard Container -->
-<div class="hph-dashboard" data-current-section="<?php echo esc_attr($current_section); ?>">
-    <!-- Mobile Overlay -->
-    <div class="hph-mobile-overlay"></div>
-
-    <!-- Mobile Header -->
-    <div class="hph-mobile-header hph-d-desktop-none">
-        <button class="hph-mobile-menu-btn" aria-label="<?php esc_attr_e('Open navigation menu', 'happy-place'); ?>">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h1 class="hph-mobile-title">
-            <?php echo esc_html($nav_items[$current_section]['label'] ?? __('Dashboard', 'happy-place')); ?>
-        </h1>
-        <div class="hph-mobile-actions">
-            <!-- Add mobile-specific actions here -->
-        </div>
-    </div>
-
-    <!-- Dashboard Sidebar -->
-    <aside class="hph-dashboard-sidebar" role="navigation" aria-label="<?php esc_attr_e('Dashboard navigation', 'happy-place'); ?>">
-
-        <!-- User Profile Section -->
-        <div class="hph-dashboard-user">
-            <?php if ($agent_photo && isset($agent_photo['url'])) : ?>
-                <img src="<?php echo esc_url($agent_photo['url']); ?>"
-                    alt="<?php echo esc_attr($agent_name); ?>"
-                    class="hph-dashboard-avatar"
-                    loading="lazy">
-            <?php else : ?>
-                <div class="hph-dashboard-avatar hph-dashboard-avatar--placeholder">
-                    <i class="fas fa-user"></i>
-                </div>
-            <?php endif; ?>
-
-            <div class="hph-dashboard-user-info">
-                <h3><?php echo esc_html($agent_name); ?></h3>
-                <?php if ($agent_title) : ?>
-                    <p><?php echo esc_html($agent_title); ?></p>
-                <?php endif; ?>
+<div class="hph-dashboard">
+    <div class="hph-container">
+        <!-- Dashboard Header -->
+        <header class="hph-dashboard-header">
+            <div class="hph-dashboard-welcome">
+                <h1 class="hph-dashboard-title">
+                    <?php
+                    $greeting = '';
+                    $hour = (int)current_time('H');
+                    if ($hour < 12) {
+                        $greeting = __('Good Morning', 'happy-place');
+                    } elseif ($hour < 17) {
+                        $greeting = __('Good Afternoon', 'happy-place');
+                    } else {
+                        $greeting = __('Good Evening', 'happy-place');
+                    }
+                    echo esc_html($greeting) . ', ' . esc_html(explode(' ', $current_user->display_name)[0]);
+                    ?>
+                </h1>
+                <p class="hph-dashboard-subtitle">
+                    <?php _e('Welcome to your agent dashboard', 'happy-place'); ?>
+                </p>
             </div>
-        </div>
+            <div class="hph-dashboard-agent-info">
+                <?php
+                $agent_photo = '';
+                if (!empty($agent_data['agent_photo'])) {
+                    if (is_array($agent_data['agent_photo'])) {
+                        $agent_photo = $agent_data['agent_photo']['url'] ?? '';
+                    } else {
+                        $agent_photo = $agent_data['agent_photo'];
+                    }
+                }
 
-        <!-- Navigation Menu -->
-        <nav class="hph-dashboard-nav" role="menu">
+                if ($agent_photo) : ?>
+                    <img src="<?php echo esc_url($agent_photo); ?>" alt="<?php echo esc_attr($current_user->display_name); ?>" class="hph-dashboard-agent-photo">
+                <?php else : ?>
+                    <div class="hph-dashboard-agent-photo hph-agent-avatar">
+                        <?php echo esc_html(strtoupper(substr($current_user->display_name, 0, 1))); ?>
+                    </div>
+                <?php endif; ?>
+                <div class="hph-dashboard-agent-details">
+                    <h2><?php echo esc_html($current_user->display_name); ?></h2>
+                    <?php if (!empty($agent_data['title'])) : ?>
+                        <p><?php echo esc_html($agent_data['title']); ?></p>
+                    <?php elseif (!empty($agent_data['agent_title'])) : ?>
+                        <p><?php echo esc_html($agent_data['agent_title']); ?></p>
+                    <?php else : ?>
+                        <p><?php _e('Real Estate Professional', 'happy-place'); ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Navigation -->
+        <nav class="hph-dashboard-nav" role="tablist">
             <?php foreach ($nav_items as $section => $item) :
-                $url = function_exists('hph_get_dashboard_url') ? hph_get_dashboard_url($section) : add_query_arg('section', $section);
                 $is_active = $current_section === $section;
             ?>
-                <a href="<?php echo esc_url($url); ?>"
+                <a href="#<?php echo esc_attr($section); ?>"
                     class="hph-dashboard-nav-item<?php echo $is_active ? ' hph-dashboard-nav-item--active' : ''; ?>"
                     data-section="<?php echo esc_attr($section); ?>"
-                    role="menuitem"
-                    aria-current="<?php echo $is_active ? 'page' : 'false'; ?>"
-                    title="<?php echo esc_attr($item['description']); ?>">
+                    role="tab"
+                    aria-selected="<?php echo $is_active ? 'true' : 'false'; ?>"
+                    aria-controls="<?php echo esc_attr($section); ?>">
                     <i class="fas <?php echo esc_attr($item['icon']); ?>" aria-hidden="true"></i>
                     <span><?php echo esc_html($item['label']); ?></span>
                 </a>
             <?php endforeach; ?>
         </nav>
 
-        <!-- Sidebar Footer -->
-        <div class="hph-dashboard-sidebar-footer">
-            <div class="hph-quick-stats">
-                <div class="hph-quick-stat">
-                    <div class="hph-quick-stat-value"><?php echo esc_html($stats['active_listings'] ?? '0'); ?></div>
-                    <div class="hph-quick-stat-label"><?php esc_html_e('Active Listings', 'happy-place'); ?></div>
-                </div>
-                <div class="hph-quick-stat">
-                    <div class="hph-quick-stat-value"><?php echo esc_html($stats['leads_this_month'] ?? '0'); ?></div>
-                    <div class="hph-quick-stat-label"><?php esc_html_e('New Leads', 'happy-place'); ?></div>
-                </div>
-            </div>
-        </div>
-    </aside>
+        <!-- Dashboard Content -->
+        <div class="hph-dashboard-content">
+            <?php
+            // Check if we're in a form action mode
+            if (!empty($current_action) && in_array($current_action, $allowed_actions)) {
+                // Handle form actions
+                switch ($current_action) {
+                    case 'new-listing':
+                    case 'edit-listing':
+                        get_template_part('template-parts/dashboard/form', 'listing');
+                        break;
 
-    <!-- Dashboard Main Content -->
-    <main class="hph-dashboard-main" role="main">
+                    case 'new-open-house':
+                    case 'edit-open-house':
+                        get_template_part('template-parts/dashboard/form', 'open-house');
+                        break;
 
-        <!-- Dashboard Header -->
-        <header class="hph-dashboard-header">
-            <div class="hph-overview-greeting">
-                <h1 class="hph-dashboard-title">
-                    <?php
-                    printf(
-                        /* translators: %s: Current time of day greeting */
-                        esc_html__('Good %s, %s', 'happy-place'),
-                        esc_html(hph_get_time_greeting()),
-                        esc_html($agent_name)
-                    );
+                    case 'new-lead':
+                    case 'edit-lead':
+                        get_template_part('template-parts/dashboard/form', 'lead');
+                        break;
+
+                    default:
+                        // Fallback to section content
+                        foreach ($nav_items as $section => $item) :
+                            $is_active = $section === $current_section;
+            ?>
+                            <div id="<?php echo esc_attr($section); ?>"
+                                class="hph-dashboard-section<?php echo $is_active ? ' hph-dashboard-section--active' : ''; ?>"
+                                role="tabpanel"
+                                aria-labelledby="<?php echo esc_attr($section); ?>-tab">
+                                <?php
+                                if ($is_active) {
+                                    get_template_part('template-parts/dashboard/section', $section, [
+                                        'section_data' => HPH_Ajax_Handler::get_section_data($section)
+                                    ]);
+                                }
+                                ?>
+                            </div>
+                    <?php endforeach;
+                        break;
+                }
+            } else {
+                // Normal section display
+                foreach ($nav_items as $section => $item) :
+                    $is_active = $section === $current_section;
                     ?>
-                </h1>
-                <p class="hph-dashboard-subtitle">
-                    <?php echo esc_html($nav_items[$current_section]['description'] ?? __('Welcome to your dashboard', 'happy-place')); ?>
-                </p>
-            </div>
-            <div class="hph-overview-date">
-                <div class="hph-current-date">
-                    <?php echo esc_html(wp_date('l, F j, Y')); ?>
-                </div>
-                <div class="hph-current-time" data-live-time="true">
-                    <?php echo esc_html(wp_date('g:i A')); ?>
-                </div>
-            </div>
-        </header>
-
-        <!-- Dashboard Content Sections -->
-
-        <!-- Overview Section -->
-        <section id="overview" class="hph-dashboard-section<?php echo $current_section === 'overview' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-overview">
-            <?php include get_template_directory() . '/templates/dashboard/overview.php'; ?>
-        </section>
-
-        <!-- Listings Section -->
-        <section id="listings" class="hph-dashboard-section<?php echo $current_section === 'listings' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-listings">
-            <?php include get_template_directory() . '/templates/dashboard/listings.php'; ?>
-        </section>
-
-        <!-- Open Houses Section -->
-        <section id="open-houses" class="hph-dashboard-section<?php echo $current_section === 'open-houses' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-open-houses">
-            <?php include get_template_directory() . '/templates/dashboard/open-houses.php'; ?>
-        </section>
-
-        <!-- Performance Section -->
-        <section id="performance" class="hph-dashboard-section<?php echo $current_section === 'performance' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-performance">
-            <?php include get_template_directory() . '/templates/dashboard/performance.php'; ?>
-        </section>
-
-        <!-- Leads Section -->
-        <section id="leads" class="hph-dashboard-section<?php echo $current_section === 'leads' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-leads">
-            <?php include get_template_directory() . '/templates/dashboard/leads.php'; ?>
-        </section>
-
-        <!-- Team Section -->
-        <section id="team" class="hph-dashboard-section<?php echo $current_section === 'team' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-team">
-            <?php include get_template_directory() . '/templates/dashboard/team.php'; ?>
-        </section>
-
-        <!-- Profile Section -->
-        <section id="profile" class="hph-dashboard-section<?php echo $current_section === 'profile' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-profile">
-            <?php include get_template_directory() . '/templates/dashboard/profile.php'; ?>
-        </section>
-
-        <!-- Cache Management Section (Admin Only) -->
-        <?php if (current_user_can('manage_options')) : ?>
-            <section id="cache" class="hph-dashboard-section<?php echo $current_section === 'cache' ? ' hph-dashboard-section--active' : ''; ?>" role="tabpanel" aria-labelledby="nav-cache">
-                <?php include plugin_dir_path(HPH_PLUGIN_FILE) . 'templates/dashboard/cache-management.php'; ?>
-            </section>
-        <?php endif; ?>
-
-        <!-- Error Section (for unknown sections) -->
-        <?php if (!array_key_exists($current_section, $nav_items)) : ?>
-            <section class="hph-dashboard-section hph-dashboard-section--active">
-                <div class="hph-empty-state">
-                    <div class="hph-empty-state-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div id="<?php echo esc_attr($section); ?>"
+                        class="hph-dashboard-section<?php echo $is_active ? ' hph-dashboard-section--active' : ''; ?>"
+                        role="tabpanel"
+                        aria-labelledby="<?php echo esc_attr($section); ?>-tab">
+                        <?php
+                        if ($is_active) {
+                            get_template_part('template-parts/dashboard/section', $section, [
+                                'section_data' => HPH_Ajax_Handler::get_section_data($section)
+                            ]);
+                        }
+                        ?>
                     </div>
-                    <h2 class="hph-empty-state-title"><?php esc_html_e('Section Not Found', 'happy-place'); ?></h2>
-                    <p class="hph-empty-state-description">
-                        <?php esc_html_e('The requested dashboard section could not be found. Please try navigating to a different section.', 'happy-place'); ?>
-                    </p>
-                    <a href="<?php echo esc_url(add_query_arg('section', 'overview')); ?>" class="hph-btn hph-btn--primary">
-                        <i class="fas fa-home"></i>
-                        <?php esc_html_e('Go to Overview', 'happy-place'); ?>
-                    </a>
-                </div>
-            </section>
-        <?php endif; ?>
-
-    </main>
+            <?php endforeach;
+            } ?>
+        </div>
+    </div>
 </div>
 
 <?php
 do_action('hph_after_dashboard');
 get_footer();
 ?>
+
+<!-- AJAX Configuration -->
+<script>
+    var dashboardAjax = {
+        ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
+        nonce: '<?php echo wp_create_nonce('hph_dashboard_nonce'); ?>'
+    };
+</script>
 
 <!-- Loading Overlay -->
 <div class="hph-loading-overlay" id="hph-loading-overlay" style="display: none;" aria-hidden="true">
@@ -313,6 +266,17 @@ get_footer();
 
 <!-- Toast Notifications Container -->
 <div id="hph-toast-container" class="hph-toast-container"></div>
+
+<!-- Ensure proper section visibility -->
+<style>
+    .hph-dashboard-section {
+        display: none !important;
+    }
+
+    .hph-dashboard-section--active {
+        display: block !important;
+    }
+</style>
 
 <!-- Dashboard JavaScript -->
 <script>
@@ -347,33 +311,194 @@ get_footer();
                 const navItems = document.querySelectorAll('.hph-dashboard-nav-item');
 
                 navItems.forEach(item => {
-                    item.addEventListener('click', function(e) {
-                        // For AJAX section loading (optional)
-                        if (window.hphAjaxEnabled) {
-                            e.preventDefault();
-                            const section = this.dataset.section;
-                            HphDashboard.loadSection(section);
-                        }
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const section = item.dataset.section;
+                        if (!section) return;
+
+                        // Update active states
+                        navItems.forEach(nav => {
+                            nav.classList.remove('hph-dashboard-nav-item--active');
+                            nav.setAttribute('aria-selected', 'false');
+                        });
+                        item.classList.add('hph-dashboard-nav-item--active');
+                        item.setAttribute('aria-selected', 'true');
+
+                        this.loadSection(section);
                     });
+                });
+
+                // Handle form button clicks
+                this.initFormButtons();
+
+                // Handle initial section display on page load
+                this.showInitialSection();
+            },
+
+            // Form button navigation
+            initFormButtons: function() {
+                // Use event delegation to handle dynamically loaded form buttons
+                document.addEventListener('click', (e) => {
+                    // Check if clicked element is a form button or contains one
+                    const formButton = e.target.closest('a[href*="action="]');
+                    if (!formButton) return;
+
+                    // Only handle buttons within the dashboard content area
+                    const dashboardContent = document.querySelector('.hph-dashboard-content');
+                    if (!dashboardContent || !dashboardContent.contains(formButton)) return;
+
+                    e.preventDefault();
+
+                    // Extract action and other parameters from URL
+                    const url = new URL(formButton.href);
+                    const action = url.searchParams.get('action');
+
+                    if (action) {
+                        // Pass the full URL so loadForm can extract any additional parameters
+                        this.loadFormFromUrl(action, url);
+                    }
                 });
             },
 
-            // AJAX section loading (optional)
+            // Load form via AJAX with URL parameters
+            loadFormFromUrl: function(action, url) {
+                const contentArea = document.querySelector('.hph-dashboard-content-area');
+                if (!contentArea) return;
+
+                this.showLoader();
+
+                // Build form data with action and any additional parameters from the URL
+                const formData = new URLSearchParams({
+                    action: 'load_dashboard_section',
+                    section: action,
+                    action_type: 'form',
+                    nonce: '<?php echo wp_create_nonce('hph_dashboard_nonce'); ?>'
+                });
+
+                // Extract additional parameters from the clicked URL
+                if (url.searchParams.get('listing_id')) {
+                    formData.append('listing_id', url.searchParams.get('listing_id'));
+                }
+                if (url.searchParams.get('open_house_id')) {
+                    formData.append('open_house_id', url.searchParams.get('open_house_id'));
+                }
+                if (url.searchParams.get('lead_id')) {
+                    formData.append('lead_id', url.searchParams.get('lead_id'));
+                }
+
+                fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.hideLoader();
+
+                        if (data.success && data.data.content) {
+                            contentArea.innerHTML = data.data.content;
+
+                            // Update page title if provided
+                            if (data.data.title) {
+                                const titleElement = document.querySelector('.hph-dashboard-section-title');
+                                if (titleElement) {
+                                    titleElement.textContent = data.data.title;
+                                }
+                            }
+
+                            // Re-initialize form buttons for newly loaded content
+                            this.initFormButtons();
+                        } else {
+                            this.showToast('Error loading form: ' + (data.data ? data.data : 'Unknown error'), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        this.hideLoader();
+                        console.error('Form loading error:', error);
+                        this.showToast('Failed to load form. Please try again.', 'error');
+                    });
+            },
+
+            // Show initial section and hide others
+            showInitialSection: function() {
+                const allSections = document.querySelectorAll('.hph-dashboard-section');
+                const activeSection = document.querySelector('.hph-dashboard-section--active');
+
+                // Hide all sections first
+                allSections.forEach(section => {
+                    if (section !== activeSection) {
+                        section.classList.remove('hph-dashboard-section--active');
+                    }
+                });
+            },
+
+            // AJAX section loading
             loadSection: function(section) {
+                console.log('Loading section:', section);
                 const loadingOverlay = document.getElementById('hph-loading-overlay');
+                const allSections = document.querySelectorAll('.hph-dashboard-section');
+                const newSection = document.querySelector(`#${section}`);
+
+                if (!newSection) {
+                    console.error('Section not found:', section);
+                    return;
+                }
+
+                // Hide all sections first
+                console.log('Hiding all sections');
+                allSections.forEach(sec => {
+                    sec.classList.remove('hph-dashboard-section--active');
+                });
+
+                // Show loading overlay
                 if (loadingOverlay) {
                     loadingOverlay.style.display = 'flex';
                 }
 
-                // Add your AJAX loading logic here
-                console.log('Loading section:', section);
+                // Update URL with hash
+                window.location.hash = section;
 
-                // Hide loading after delay (replace with actual AJAX completion)
-                setTimeout(() => {
-                    if (loadingOverlay) {
-                        loadingOverlay.style.display = 'none';
-                    }
-                }, 1000);
+                // Make AJAX request
+                fetch(dashboardAjax.ajaxUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            action: 'hph_load_dashboard_section',
+                            section: section,
+                            nonce: dashboardAjax.nonce
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Section loaded successfully:', section);
+                            // Update section content
+                            newSection.innerHTML = data.data.content;
+
+                            // Show the new section
+                            newSection.classList.add('hph-dashboard-section--active');
+                            console.log('Section activated:', section);
+
+                            // Update page title
+                            document.title = `${data.data.title} - ${document.querySelector('meta[property="og:site_name"]')?.content || 'Happy Place'}`;
+                        } else {
+                            console.error('AJAX error:', data.data.message);
+                            this.showToast(data.data.message || 'Error loading section', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading section:', error);
+                        this.showToast('Error loading section. Please try again.', 'error');
+                    })
+                    .finally(() => {
+                        if (loadingOverlay) {
+                            loadingOverlay.style.display = 'none';
+                        }
+                    });
             },
 
             // Live time update

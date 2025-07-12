@@ -306,6 +306,30 @@ function init_happy_place()
             return;
         }
 
+        // Initialize CSV Import Manager
+        if (!($csv_import_manager = load_class('admin/class-csv-import-manager.php', __NAMESPACE__ . '\\Admin\\CSV_Import_Manager'))) {
+            error_log('HPH: Failed to load CSV_Import_Manager');
+            return;
+        }
+
+        // Initialize Admin Menu
+        if (!($admin_menu = load_class('admin/class-admin-menu.php', __NAMESPACE__ . '\\Admin\\Admin_Menu'))) {
+            error_log('HPH: Failed to load Admin_Menu');
+            return;
+        }
+
+        // Initialize Admin Dashboard
+        if (!($admin_dashboard = load_class('admin/class-admin-dashboard.php', __NAMESPACE__ . '\\Admin\\Admin_Dashboard'))) {
+            error_log('HPH: Failed to load Admin_Dashboard');
+            return;
+        }
+
+        // Initialize Settings Page
+        if (!($settings_page = load_class('admin/class-settings-page.php', __NAMESPACE__ . '\\Admin\\Settings_Page'))) {
+            error_log('HPH: Failed to load Settings_Page');
+            return;
+        }
+
         // Add rewrite rules for dashboard
         add_action('init', function () {
             add_rewrite_rule(

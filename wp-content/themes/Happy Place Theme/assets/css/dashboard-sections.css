@@ -707,6 +707,52 @@
     }
 }
 
+/* Dashboard Sections - Tab Behavior */
+.hph-dashboard-sections {
+    position: relative;
+    min-height: 500px;
+}
+
+.hph-dashboard-section {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.hph-dashboard-section--active {
+    display: block;
+}
+
+.hph-dashboard-section--loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.hph-dashboard-section--loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--hph-color-gray-300);
+    border-top: 3px solid var(--hph-color-primary-500);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 /* Section Animations */
 @keyframes fadeInUp {
     from {

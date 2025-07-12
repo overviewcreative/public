@@ -96,29 +96,43 @@ function hph_add_dashboard_page_template($templates)
 add_filter('theme_page_templates', 'hph_add_dashboard_page_template');
 
 /**
- * Get dashboard URL for specific section
+ * Get a time-based greeting
  */
-function hph_get_dashboard_url($section = 'overview')
-{
-    $dashboard_page_id = get_option('hph_dashboard_page_id');
-    if (!$dashboard_page_id) {
-        return home_url('/dashboard/');
-    }
+if (!function_exists('hph_get_time_greeting')) {
+    function hph_get_time_greeting()
+    {
+        $hour = (int)current_time('H');
 
-    $url = get_permalink($dashboard_page_id);
-    if ($section !== 'overview') {
-        $url = add_query_arg('section', $section, $url);
+        if ($hour < 12) {
+            return __('Morning', 'happy-place');
+        } elseif ($hour < 17) {
+            return __('Afternoon', 'happy-place');
+        } else {
+            return __('Evening', 'happy-place');
+        }
     }
-
-    return $url;
 }
 
 /**
  * Get current dashboard section
  */
-function hph_get_dashboard_section()
-{
-    return isset($_GET['section']) ? sanitize_text_field($_GET['section']) : 'overview';
+if (!function_exists('hph_get_dashboard_section')) {
+    function hph_get_dashboard_section()
+    {
+        return isset($_GET['section']) ? sanitize_text_field($_GET['section']) : 'overview';
+    }
+}
+
+/**
+ * Get dashboard URL with optional section
+ */
+if (!function_exists('hph_get_dashboard_url')) {
+    function hph_get_dashboard_url($section = 'overview')
+    {
+        $page_id = get_option('hph_dashboard_page_id');
+        $base_url = $page_id ? get_permalink($page_id) : get_permalink();
+        return add_query_arg('section', $section, $base_url);
+    }
 }
 
 /**
@@ -134,28 +148,17 @@ function hph_can_access_dashboard($user_id = null)
 }
 
 /**
- * Get time-based greeting
- */
-function hph_get_time_greeting()
-{
-    $hour = (int)current_time('H');
-
-    if ($hour < 12) {
-        return __('Morning', 'happy-place');
-    } elseif ($hour < 17) {
-        return __('Afternoon', 'happy-place');
-    } else {
-        return __('Evening', 'happy-place');
-    }
-}
-
-/**
  * Check if current page is dashboard
- * 
+ *
  * @return bool True if the current page is any type of dashboard page
  */
 function hph_is_dashboard(): bool
 {
+    // Check front-end agent dashboard
+    if (is_page('agent-dashboard')) {
+        return true;
+    }
+
     // Check admin dashboard
     if (is_admin() && function_exists('get_current_screen')) {
         $screen = get_current_screen();

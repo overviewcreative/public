@@ -1,0 +1,153 @@
+/* ============================================================================
+   Happy Place Real Estate Platform - Dashboard Variables
+   ============================================================================ */
+
+:root {
+    /* Colors */
+    --hph-color-white: #ffffff;
+    --hph-color-black: #000000;
+
+    /* Gray Scale */
+    --hph-color-gray-25: #FCFCFD;
+    --hph-color-gray-50: #F9FAFB;
+    --hph-color-gray-100: #F2F4F7;
+    --hph-color-gray-200: #E4E7EC;
+    --hph-color-gray-300: #D0D5DD;
+    --hph-color-gray-400: #98A2B3;
+    --hph-color-gray-500: #667085;
+    --hph-color-gray-600: #475467;
+    --hph-color-gray-700: #344054;
+    --hph-color-gray-800: #1D2939;
+    --hph-color-gray-900: #101828;
+
+    /* Primary Colors */
+    --hph-color-primary-25: #FCFAFF;
+    --hph-color-primary-50: #F9F5FF;
+    --hph-color-primary-100: #F4EBFF;
+    --hph-color-primary-200: #E9D7FE;
+    --hph-color-primary-300: #D6BBFB;
+    --hph-color-primary-400: #B692F6;
+    --hph-color-primary-500: #9E77ED;
+    --hph-color-primary-600: #7F56D9;
+    --hph-color-primary-700: #6941C6;
+    --hph-color-primary-800: #53389E;
+    --hph-color-primary-900: #42307D;
+
+    /* Success Colors */
+    --hph-color-success-light: #ECFDF3;
+    --hph-color-success: #12B76A;
+    --hph-color-success-dark: #027A48;
+
+    /* Warning Colors */
+    --hph-color-warning-light: #FFFAEB;
+    --hph-color-warning: #F79009;
+    --hph-color-warning-dark: #B54708;
+
+    /* Danger Colors */
+    --hph-color-danger-light: #FEF3F2;
+    --hph-color-danger: #F04438;
+    --hph-color-danger-dark: #B42318;
+
+    /* Font Families */
+    --hph-font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+
+    /* Font Sizes */
+    --hph-font-size-xs: 0.75rem;     /* 12px */
+    --hph-font-size-sm: 0.875rem;    /* 14px */
+    --hph-font-size-base: 1rem;      /* 16px */
+    --hph-font-size-lg: 1.125rem;    /* 18px */
+    --hph-font-size-xl: 1.25rem;     /* 20px */
+    --hph-font-size-2xl: 1.5rem;     /* 24px */
+    --hph-font-size-3xl: 1.875rem;   /* 30px */
+    --hph-font-size-4xl: 2.25rem;    /* 36px */
+    --hph-font-size-5xl: 3rem;       /* 48px */
+
+    /* Font Weights */
+    --hph-font-thin: 100;
+    --hph-font-extralight: 200;
+    --hph-font-light: 300;
+    --hph-font-normal: 400;
+    --hph-font-medium: 500;
+    --hph-font-semibold: 600;
+    --hph-font-bold: 700;
+    --hph-font-extrabold: 800;
+    --hph-font-black: 900;
+
+    /* Spacing */
+    --hph-spacing-0: 0;
+    --hph-spacing-1: 0.25rem;     /* 4px */
+    --hph-spacing-2: 0.5rem;      /* 8px */
+    --hph-spacing-3: 0.75rem;     /* 12px */
+    --hph-spacing-4: 1rem;        /* 16px */
+    --hph-spacing-5: 1.25rem;     /* 20px */
+    --hph-spacing-6: 1.5rem;      /* 24px */
+    --hph-spacing-8: 2rem;        /* 32px */
+    --hph-spacing-10: 2.5rem;     /* 40px */
+    --hph-spacing-12: 3rem;       /* 48px */
+    --hph-spacing-16: 4rem;       /* 64px */
+    --hph-spacing-20: 5rem;       /* 80px */
+
+    /* Border Radius */
+    --hph-radius-none: 0;
+    --hph-radius-sm: 0.125rem;    /* 2px */
+    --hph-radius: 0.25rem;        /* 4px */
+    --hph-radius-md: 0.375rem;    /* 6px */
+    --hph-radius-lg: 0.5rem;      /* 8px */
+    --hph-radius-xl: 0.75rem;     /* 12px */
+    --hph-radius-2xl: 1rem;       /* 16px */
+    --hph-radius-3xl: 1.5rem;     /* 24px */
+    --hph-radius-full: 9999px;
+
+    /* Shadows */
+    --hph-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --hph-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --hph-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --hph-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --hph-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --hph-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+    /* Z-index */
+    --hph-z-0: 0;
+    --hph-z-10: 10;
+    --hph-z-20: 20;
+    --hph-z-30: 30;
+    --hph-z-40: 40;
+    --hph-z-50: 50;
+    --hph-z-auto: auto;
+    --hph-z-dropdown: 1000;
+    --hph-z-sticky: 1020;
+    --hph-z-fixed: 1030;
+    --hph-z-modal-backdrop: 1040;
+    --hph-z-modal: 1050;
+    --hph-z-popover: 1060;
+    --hph-z-tooltip: 1070;
+    --hph-z-toast: 1080;
+    --hph-z-overlay: 1090;
+
+    /* Transitions */
+    --hph-transition-none: none;
+    --hph-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --hph-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --hph-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Container Sizes */
+    --hph-container-sm: 640px;
+    --hph-container-md: 768px;
+    --hph-container-lg: 1024px;
+    --hph-container-xl: 1280px;
+    --hph-container-2xl: 1536px;
+
+    /* Line Heights */
+    --hph-line-height-none: 1;
+    --hph-line-height-tight: 1.25;
+    --hph-line-height-snug: 1.375;
+    --hph-line-height-normal: 1.5;
+    --hph-line-height-relaxed: 1.625;
+    --hph-line-height-loose: 2;
+
+    /* Header/Footer Heights */
+    --hph-header-height: 120px;
+    --hph-header-height-mobile: 80px;
+    --hph-footer-height: 200px;
+    --hph-footer-height-mobile: 150px;
+}

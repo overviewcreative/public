@@ -17,6 +17,165 @@
 (function(window, document) {
     'use strict';
 
+    const DashboardTabs = {
+        init: function() {
+            this.navItems = document.querySelectorAll('.hph-dashboard-nav-item');
+            this.sections = document.querySelectorAll('.hph-dashboard-section');
+            this.currentSection = this.getCurrentSection();
+            
+            this.bindEvents();
+            this.showSection(this.currentSection);
+        },
+
+        bindEvents: function() {
+            this.navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    this.switchToSection(section);
+                });
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', (e) => {
+                if (e.state && e.state.section) {
+                    this.showSection(e.state.section, false);
+                }
+            });
+        },
+
+        getCurrentSection: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('section') || 'overview';
+        },
+
+        switchToSection: function(section) {
+            if (section === this.currentSection) return;
+
+            // Update URL without page reload
+            const newUrl = this.updateURL(section);
+            history.pushState({section: section}, '', newUrl);
+
+            // Load the section
+            this.showSection(section);
+        },
+
+        showSection: function(section, updateNav = true) {
+            // Update navigation
+            if (updateNav) {
+                this.updateNavigation(section);
+            }
+
+            // Hide all sections
+            this.sections.forEach(sec => {
+                sec.classList.remove('hph-dashboard-section--active');
+            });
+
+            // Show target section
+            const targetSection = document.getElementById(section);
+            if (targetSection) {
+                // Check if section content needs to be loaded
+                if (targetSection.innerHTML.trim() === '' || targetSection.dataset.needsRefresh === 'true') {
+                    this.loadSectionContent(section, targetSection);
+                } else {
+                    targetSection.classList.add('hph-dashboard-section--active');
+                }
+            }
+
+            this.currentSection = section;
+
+            // Update mobile header title
+            const mobileTitle = document.querySelector('.hph-mobile-title');
+            if (mobileTitle) {
+                const navItem = document.querySelector(`[data-section="${section}"]`);
+                mobileTitle.textContent = navItem ? navItem.querySelector('span').textContent : 'Dashboard';
+            }
+
+            // Close mobile menu if open
+            HphDashboard.closeMobileMenu();
+        },
+
+        updateNavigation: function(activeSection) {
+            this.navItems.forEach(item => {
+                if (item.dataset.section === activeSection) {
+                    item.classList.add('hph-dashboard-nav-item--active');
+                    item.setAttribute('aria-current', 'page');
+                } else {
+                    item.classList.remove('hph-dashboard-nav-item--active');
+                    item.setAttribute('aria-current', 'false');
+                }
+            });
+        },
+
+        loadSectionContent: function(section, targetElement) {
+            // Show loading state
+            targetElement.classList.add('hph-dashboard-section--loading');
+            targetElement.classList.add('hph-dashboard-section--active');
+
+            // Load content via AJAX
+            fetch(window.hphAjax.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'hph_load_dashboard_section',
+                    section: section,
+                    nonce: window.hphAjax.nonce
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    targetElement.innerHTML = data.data.content;
+                    targetElement.classList.remove('hph-dashboard-section--loading');
+                    
+                    // Initialize any section-specific JavaScript
+                    this.initSectionFeatures(section);
+
+                    // Trigger section loaded event
+                    HphDashboard.trigger('section:loaded', { section });
+                } else {
+                    this.showSectionError(targetElement);
+                }
+            })
+            .catch(error => {
+                console.error('Dashboard section load error:', error);
+                this.showSectionError(targetElement);
+            });
+        },
+
+        showSectionError: function(element) {
+            element.innerHTML = `
+                <div class="hph-empty-state">
+                    <div class="hph-empty-state-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="hph-empty-state-title">Error Loading Section</h2>
+                    <p class="hph-empty-state-description">
+                        There was an error loading this section. Please try refreshing the page.
+                    </p>
+                    <button class="hph-btn hph-btn--primary" onclick="window.location.reload()">
+                        <i class="fas fa-sync"></i> Refresh Page
+                    </button>
+                </div>
+            `;
+            element.classList.remove('hph-dashboard-section--loading');
+        },
+
+        initSectionFeatures: function(section) {
+            if (HphDashboard['init' + section.charAt(0).toUpperCase() + section.slice(1) + 'Features']) {
+                HphDashboard['init' + section.charAt(0).toUpperCase() + section.slice(1) + 'Features']();
+            }
+        },
+
+        updateURL: function(section) {
+            const url = new URL(window.location);
+            url.searchParams.set('section', section);
+            return url.toString();
+        }
+    };
+
     /**
      * Main Dashboard Object
      */
@@ -1092,9 +1251,8 @@
         HphDashboard.init();
     }
 
-    /**
-     * Make HphDashboard globally available
-     */
+    // Make both objects globally available
     window.HphDashboard = HphDashboard;
+    window.DashboardTabs = DashboardTabs;
 
 })(window, document);

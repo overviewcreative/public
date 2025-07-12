@@ -81,6 +81,9 @@ class HPH_Theme
         // Include plugin integration
         require_once get_template_directory() . '/inc/plugin-integration.php';
 
+        // Include dashboard form handlers
+        require_once get_template_directory() . '/inc/dashboard-form-handlers.php';
+
         // Dashboard functions are in template-functions.php
     }
 
@@ -92,6 +95,7 @@ class HPH_Theme
         add_action('after_setup_theme', [$this, 'theme_setup']);
         add_action('init', [$this, 'init_theme_features']);
         add_action('widgets_init', [$this, 'register_sidebars']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts_styles']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_filter('template_include', [$this, 'load_custom_templates']);
     }
@@ -248,7 +252,7 @@ class HPH_Theme
             // Dashboard
             'happy_place_dashboard',
             'agent_dashboard',
-            'section',
+            'dashboard_section',
 
             // Search & Filters
             'search_term',
@@ -284,6 +288,14 @@ class HPH_Theme
      */
     public function load_custom_templates($template): string
     {
+        // Agent Dashboard
+        if (is_page('agent-dashboard')) {
+            $custom_template = HPH_THEME_DIR . '/templates/agent-dashboard.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+
         // Single post types
         if (is_singular()) {
             $post_type = get_post_type();
@@ -314,12 +326,54 @@ class HPH_Theme
      */
     public function add_rewrite_rules(): void
     {
-        add_rewrite_tag('%section%', '([^&]+)');
+        add_rewrite_tag('%dashboard_section%', '([^&]+)');
         add_rewrite_rule(
             'agent-dashboard/([^/]+)/?$',
-            'index.php?pagename=agent-dashboard&section=$matches[1]',
+            'index.php?pagename=agent-dashboard&dashboard_section=$matches[1]',
             'top'
         );
+    }
+
+    /**
+     * Enqueue scripts and styles
+     */
+    public function enqueue_scripts_styles(): void
+    {
+        // Main theme styles
+        wp_enqueue_style(
+            'hph-main-style',
+            get_stylesheet_uri(),
+            [],
+            HPH_THEME_VERSION
+        );
+
+        // Font Awesome
+        wp_enqueue_style(
+            'font-awesome',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+            [],
+            '6.0.0'
+        );
+
+        // jQuery (WordPress includes this)
+        wp_enqueue_script('jquery');
+
+        // Dashboard forms JavaScript (only on dashboard pages)
+        if (is_page_template('templates/agent-dashboard.php') || is_page('agent-dashboard')) {
+            wp_enqueue_script(
+                'hph-dashboard-forms',
+                HPH_THEME_URI . '/assets/js/dashboard-forms.js',
+                ['jquery'],
+                HPH_THEME_VERSION,
+                true
+            );
+
+            // Localize script for AJAX
+            wp_localize_script('hph-dashboard-forms', 'hph_ajax', [
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('hph_dashboard_nonce')
+            ]);
+        }
     }
 
     /**
