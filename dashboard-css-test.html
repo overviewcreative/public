@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard CSS Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .test-container { max-width: 1200px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-grid { display: grid; grid-template-columns: 280px 1fr; min-height: 400px; gap: 20px; }
+        .test-sidebar { background: #fff; border: 2px solid red; padding: 20px; }
+        .test-main { background: #fff; border: 2px solid blue; padding: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        
+        /* Copy the exact CSS from our template to test */
+        .hph-dashboard-test {
+            min-height: calc(100vh - 200px);
+            margin: 0;
+            display: grid !important;
+            grid-template-columns: 280px 1fr !important;
+            background-color: #f8f9fa !important;
+            position: relative !important;
+            z-index: 1 !important;
+            background: linear-gradient(45deg, #e3f2fd 25%, transparent 25%),
+                        linear-gradient(-45deg, #e3f2fd 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #e3f2fd 75%),
+                        linear-gradient(-45deg, transparent 75%, #e3f2fd 75%) !important;
+            background-size: 20px 20px !important;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px !important;
+        }
+        
+        .hph-dashboard-sidebar-test,
+        .hph-dashboard-main-test {
+            display: block !important;
+            background: white !important;
+            border: 2px solid red !important;
+            width: 280px !important;
+            min-height: 500px !important;
+            padding: 20px !important;
+        }
+        
+        .hph-dashboard-main-test {
+            width: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Dashboard CSS Test Page</h1>
+        
+        <div class="test-section">
+            <h2>1. Simple Grid Test (Should Work)</h2>
+            <div class="test-grid">
+                <div class="test-sidebar">
+                    <h3>Sidebar</h3>
+                    <p>This is a simple CSS grid test. If you can see this sidebar and the main content side by side, CSS Grid is working.</p>
+                </div>
+                <div class="test-main">
+                    <h3>Main Content</h3>
+                    <p>This is the main content area. Both sections should be visible side by side.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Dashboard CSS Test (Exact Copy)</h2>
+            <div class="hph-dashboard-test">
+                <div class="hph-dashboard-sidebar-test">
+                    <h3>Dashboard Sidebar</h3>
+                    <p>This uses the exact CSS from our dashboard template. If this works but the real dashboard doesn't, there's a CSS conflict.</p>
+                </div>
+                <div class="hph-dashboard-main-test">
+                    <h3>Dashboard Main</h3>
+                    <p>This should show the blue checkered background pattern from our debug CSS.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Dashboard URL Test</h2>
+            <p><strong>Real Dashboard:</strong> <a href="http://localhost:10010/agent-dashboard/" target="_blank">http://localhost:10010/agent-dashboard/</a></p>
+            <p>Open the real dashboard in a new tab and compare with these test grids.</p>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Browser Console Instructions</h2>
+            <ol>
+                <li>Open the real dashboard: <code>http://localhost:10010/agent-dashboard/</code></li>
+                <li>Press <strong>F12</strong> to open Developer Tools</li>
+                <li>Go to <strong>Console</strong> tab</li>
+                <li>Look for our debug messages:
+                    <ul>
+                        <li>"Dashboard configuration loaded"</li>
+                        <li>"=== DASHBOARD DIAGNOSTIC ==="</li>
+                        <li>"Dashboard element exists: true/false"</li>
+                        <li>"Dashboard display: grid/none/etc"</li>
+                    </ul>
+                </li>
+                <li>Go to <strong>Elements</strong> tab and inspect <code>.hph-dashboard</code></li>
+                <li>Check if CSS styles are being applied or overridden</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        console.log('Test page loaded. CSS Grid support:', CSS.supports('display', 'grid'));
+        console.log('Viewport size:', window.innerWidth + 'x' + window.innerHeight);
+        
+        // Test if our grid elements are visible
+        setTimeout(() => {
+            const testGrid = document.querySelector('.test-grid');
+            const dashboardTest = document.querySelector('.hph-dashboard-test');
+            
+            if (testGrid) {
+                const rect = testGrid.getBoundingClientRect();
+                console.log('Test grid dimensions:', rect.width + 'x' + rect.height);
+            }
+            
+            if (dashboardTest) {
+                const rect = dashboardTest.getBoundingClientRect();
+                console.log('Dashboard test dimensions:', rect.width + 'x' + rect.height);
+                const styles = window.getComputedStyle(dashboardTest);
+                console.log('Dashboard test display:', styles.display);
+                console.log('Dashboard test grid-template-columns:', styles.gridTemplateColumns);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

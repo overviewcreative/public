@@ -75,10 +75,18 @@
             const targetSection = document.getElementById(section);
             if (targetSection) {
                 // Check if section content needs to be loaded
-                if (targetSection.innerHTML.trim() === '' || targetSection.dataset.needsRefresh === 'true') {
+                const isLoaded = targetSection.dataset.loaded === 'true';
+                const needsRefresh = targetSection.dataset.needsRefresh === 'true';
+                const hasContent = targetSection.innerHTML.trim() !== '';
+                
+                if (!isLoaded && (!hasContent || needsRefresh)) {
                     this.loadSectionContent(section, targetSection);
                 } else {
                     targetSection.classList.add('hph-dashboard-section--active');
+                    // Mark as loaded if it has content
+                    if (hasContent) {
+                        targetSection.dataset.loaded = 'true';
+                    }
                 }
             }
 
@@ -1177,6 +1185,55 @@
         },
 
         /**
+         * Handle form submission
+         */
+        handleFormSubmit(form) {
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                submitBtn.disabled = true;
+            }
+
+            // Make AJAX request
+            fetch(this.config.ajaxUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showToast(data.data.message || 'Saved successfully!', 'success');
+                    
+                    // Handle redirect
+                    if (data.data.redirect) {
+                        window.location.href = data.data.redirect;
+                    }
+                    
+                    // Trigger form submitted event
+                    this.trigger('form:submitted', { form, data });
+                } else {
+                    this.showToast(data.data.message || 'Error saving form.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Form submission error:', error);
+                this.showToast('Failed to save. Please try again.', 'error');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        },
+
+        /**
          * Utility functions
          */
         generateDateLabels(days) {
@@ -1237,7 +1294,27 @@
             if (overlay) {
                 overlay.classList.remove('hph-loading-overlay--active');
             }
-        }
+        },
+
+        /**
+         * Handle responsive breakpoint changes
+         */
+        handleResponsiveChange() {
+            // Close mobile menu when switching to desktop
+            if (!this.state.isMobile && this.isMobileMenuOpen()) {
+                this.closeMobileMenu();
+            }
+            
+            // Log responsive change for debugging
+            this.log(`Responsive change: ${this.state.isMobile ? 'Mobile' : 'Desktop'} mode`);
+            
+            // Trigger responsive change event
+            this.trigger('responsive:changed', {
+                isMobile: this.state.isMobile,
+                breakpoint: this.state.isMobile ? 'mobile' : 'desktop'
+            });
+        },
+
     };
 
     /**
@@ -1246,9 +1323,11 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             HphDashboard.init();
+            DashboardTabs.init(); // Also initialize the tabs system
         });
     } else {
         HphDashboard.init();
+        DashboardTabs.init(); // Also initialize the tabs system
     }
 
     // Make both objects globally available

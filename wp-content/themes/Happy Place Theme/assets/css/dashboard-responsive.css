@@ -752,3 +752,40 @@
         animation: none;
     }
 }
+
+/* Fix for mobile header visibility and z-index issues */
+@media (max-width: 767px) {
+    /* Ensure mobile header shows on all mobile devices */
+    .hph-mobile-header {
+        display: flex !important;
+        z-index: 1050; /* Ensure it's above other elements */
+    }
+    
+    /* Hide desktop elements on mobile */
+    .hph-dashboard-sidebar {
+        z-index: 1040; /* Below mobile header */
+    }
+    
+    /* Ensure mobile overlay is properly positioned */
+    .hph-mobile-overlay {
+        z-index: 1030; /* Below sidebar */
+    }
+    
+    /* Prevent horizontal scroll on mobile */
+    body.hph-modal-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+}
+
+/* Tablet and desktop - hide mobile header */
+@media (min-width: 768px) {
+    .hph-mobile-header {
+        display: none !important;
+    }
+    
+    .hph-mobile-overlay {
+        display: none !important;
+    }
+}

@@ -151,7 +151,6 @@ class ACF_Field_Groups
 
         // Register and enqueue assets
         add_action('admin_enqueue_scripts', [$this, 'register_admin_assets']);
-        add_action('wp_enqueue_scripts', [$this, 'register_public_assets']);
 
         // Handle agent user and post type relationship
         add_action('acf/save_post', [$this, 'sync_agent_user_data'], 20);
@@ -174,7 +173,7 @@ class ACF_Field_Groups
 
         wp_enqueue_style(
             'happy-place-admin',
-            HPH_URL . 'assets/css/admin.css',
+            HPH_ASSETS_URL . 'css/admin.css',
             [],
             HPH_VERSION
         );
@@ -191,32 +190,6 @@ class ACF_Field_Groups
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('happy_place_admin')
         ]);
-    }
-
-    /**
-     * Register public assets
-     */
-    public function register_public_assets()
-    {
-        // Only load on single listings or archive pages
-        if (!is_singular('listing') && !is_post_type_archive('listing')) {
-            return;
-        }
-
-        wp_enqueue_style(
-            'happy-place-public',
-            HPH_URL . 'assets/css/public.css',
-            [],
-            HPH_VERSION
-        );
-
-        wp_enqueue_script(
-            'happy-place-public',
-            HPH_URL . 'assets/js/public.js',
-            ['jquery'],
-            HPH_VERSION,
-            true
-        );
     }
 
     /**

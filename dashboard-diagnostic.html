@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Loading Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Loading Diagnostic</h1>
+    
+    <div class="test-section">
+        <h3>1. Asset Loading Test</h3>
+        <p>Open browser console and navigate to: <strong>http://localhost:10010/agent-dashboard/</strong></p>
+        <p>Look for these messages:</p>
+        <ul>
+            <li>"Dashboard configuration loaded"</li>
+            <li>"Window loaded, HphDashboard available"</li>
+            <li>"HphDashboard methods"</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Network Tab Check</h3>
+        <p>In Network tab, verify these files load successfully:</p>
+        <ul>
+            <li>dashboard.js (should be ~47KB)</li>
+            <li>dashboard-core.css (should be ~15KB)</li>
+            <li>dashboard-sections.css (should be ~20KB)</li>
+            <li>dashboard-responsive.css (should be ~19KB)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Console Error Check</h3>
+        <p>Look for any JavaScript errors, especially:</p>
+        <ul>
+            <li>jQuery not defined</li>
+            <li>HphDashboard not found</li>
+            <li>AJAX/fetch errors</li>
+            <li>CSS parsing errors</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>4. DOM Inspection</h3>
+        <p>Check if these elements exist and are visible:</p>
+        <ul>
+            <li>.hph-dashboard (should have display: grid)</li>
+            <li>.hph-dashboard-sidebar (should be visible)</li>
+            <li>.hph-dashboard-main (should be visible)</li>
+            <li>.hph-dashboard-section--active (should not be display: none)</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('Diagnostic page loaded. Navigate to dashboard to test.');
+    </script>
+</body>
+</html>

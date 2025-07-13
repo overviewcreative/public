@@ -113,27 +113,7 @@ if (!function_exists('hph_get_time_greeting')) {
     }
 }
 
-/**
- * Get current dashboard section
- */
-if (!function_exists('hph_get_dashboard_section')) {
-    function hph_get_dashboard_section()
-    {
-        return isset($_GET['section']) ? sanitize_text_field($_GET['section']) : 'overview';
-    }
-}
 
-/**
- * Get dashboard URL with optional section
- */
-if (!function_exists('hph_get_dashboard_url')) {
-    function hph_get_dashboard_url($section = 'overview')
-    {
-        $page_id = get_option('hph_dashboard_page_id');
-        $base_url = $page_id ? get_permalink($page_id) : get_permalink();
-        return add_query_arg('section', $section, $base_url);
-    }
-}
 
 /**
  * Check if user can access dashboard
@@ -147,44 +127,3 @@ function hph_can_access_dashboard($user_id = null)
     return user_can($user_id, 'agent') || user_can($user_id, 'administrator');
 }
 
-/**
- * Check if current page is dashboard
- *
- * @return bool True if the current page is any type of dashboard page
- */
-function hph_is_dashboard(): bool
-{
-    // Check front-end agent dashboard
-    if (is_page('agent-dashboard')) {
-        return true;
-    }
-
-    // Check admin dashboard
-    if (is_admin() && function_exists('get_current_screen')) {
-        $screen = get_current_screen();
-        if ($screen && $screen->base === 'toplevel_page_happy-place-dashboard') {
-            return true;
-        }
-    }
-
-    // Check page templates
-    if (is_page_template(['templates/dashboard.php', 'templates/agent-dashboard.php'])) {
-        return true;
-    }
-
-    // Check URL path for dashboard
-    global $wp;
-    if ($wp && isset($wp->request)) {
-        $current_url = trailingslashit(home_url($wp->request));
-        if (strpos($current_url, '/agent-dashboard/') !== false || strpos($current_url, '/dashboard/') !== false) {
-            return true;
-        }
-    }
-
-    // Check query vars
-    if (get_query_var('happy_place_dashboard', false) || get_query_var('agent_dashboard', false)) {
-        return true;
-    }
-
-    return false;
-}

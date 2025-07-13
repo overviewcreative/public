@@ -20,17 +20,6 @@ Happy Place Theme © 2025 Happy Place Team
 
 /* Enhanced Color System - Extended Monochromatic #51bae0 */
 :root {
-    /* Legacy variable names for backward compatibility */
-    --primary-color: var(--hph-color-primary-400);
-    --secondary-color: var(--hph-color-primary-600);
-    --text-dark: var(--hph-color-gray-800);
-    --text-muted: var(--hph-color-gray-500);
-    --background-light: var(--hph-color-gray-50);
-    --border-color: var(--hph-color-gray-200);
-    --success-color: var(--hph-color-success);
-    --warning-color: var(--hph-color-warning);
-    --danger-color: var(--hph-color-danger);
-    --info-color: var(--hph-color-info);
 
     /* Primary Color Palette - Extended Monochromatic #51bae0 */
     --hph-color-primary-25: #f8fcff;     /* Ultra light blue tint */
@@ -341,7 +330,7 @@ a:focus {
 /* Primary Button */
 .hph-btn-primary {
     background: linear-gradient(135deg, var(--hph-color-primary-500), var(--hph-color-primary-600));
-    color: var(--hph-color-white);
+    color: var(--hph-color-white) !important;
     box-shadow: var(--hph-shadow-primary);
     border: 1px solid transparent;
 }
@@ -350,13 +339,37 @@ a:focus {
     background: linear-gradient(135deg, var(--hph-color-primary-600), var(--hph-color-primary-700));
     box-shadow: var(--hph-shadow-primary-lg);
     transform: translateY(-1px);
-    color: var(--hph-color-white);
+    color: var(--hph-color-white) !important;
 }
 
 .hph-btn-primary:active {
     transform: translateY(0);
     box-shadow: var(--hph-shadow-primary);
+    color: var(--hph-color-white) !important;
 }
+
+.hph-btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--hph-color-primary-200);
+    color: var(--hph-color-white) !important;
+}
+
+/* Ensure visited links don't override */
+.hph-btn-primary:visited {
+    color: var(--hph-color-white) !important;
+}
+
+/* Alternative fallback if CSS variables aren't loading */
+.hph-btn-primary {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #ffffff !important;
+}
+
+.hph-btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563EB, #1D4ED8);
+    color: #ffffff !important;
+}
+
 
 /* Secondary Button */
 .hph-btn-secondary {
@@ -879,6 +892,7 @@ a:focus {
     font-size: var(--hph-font-size-sm);
     margin: 0;
 }
+
 
 /* Navigation Styles */
 .hph-main-navigation {
@@ -1410,9 +1424,10 @@ a:focus {
 
 .hph-btn-primary,
 .hph-button--primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-color: var(--primary-color);
-    color: white;
+    background: linear-gradient(135deg, var(--hph-color-primary-600), var(--hph-color-primary-700));
+    box-shadow: var(--hph-shadow-primary-lg);
+    transform: translateY(-1px);
+    color: var(--hph-color-white) !important;
 }
 
 .hph-btn-primary:hover,

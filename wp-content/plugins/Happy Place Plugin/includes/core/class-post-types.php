@@ -24,8 +24,8 @@ class Post_Types
 
     private function __construct()
     {
-        error_log('HPH: Post_Types constructor called with debug backtrace');
-        error_log('HPH Debug: ' . print_r(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2), true));
+        // Initialize template support
+        $this->init_template_support();
 
         // If init has already fired, register immediately
         if (did_action('init')) {
@@ -179,6 +179,7 @@ class Post_Types
             'show_in_nav_menus'  => true,
             'show_in_admin_bar'  => true,
             'menu_position'      => 8,
+            'capabilities'       => $this->get_post_type_capabilities('city'),
         ]);
 
         // Transaction post type (admin only)
@@ -367,5 +368,122 @@ class Post_Types
         // Log all registered post types
         $registered_types = get_post_types(['_builtin' => false], 'names');
         error_log('HPH: All registered custom post types: ' . implode(', ', $registered_types));
+    }
+
+    /**
+     * Get post type template configuration
+     */
+    private function get_post_type_template_config(): array
+    {
+        return [
+            'listing' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions'],
+                'template_path' => 'templates/listing/'
+            ],
+            'agent' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+                'template_path' => 'templates/agent/'
+            ],
+            'community' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+                'template_path' => 'templates/community/'
+            ],
+            'city' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+                'template_path' => 'templates/city/'
+            ],
+            'transaction' => [
+                'has_archive' => true,
+                'supports' => ['title', 'custom-fields', 'revisions'],
+                'template_path' => 'templates/transaction/'
+            ],
+            'open-house' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'custom-fields'],
+                'template_path' => 'templates/open-house/'
+            ],
+            'local-place' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+                'template_path' => 'templates/local-place/'
+            ],
+            'team' => [
+                'has_archive' => true,
+                'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields'],
+                'template_path' => 'templates/team/'
+            ]
+        ];
+    }
+
+    /**
+     * Add template paths to template loader
+     */
+    public function add_template_paths($paths)
+    {
+        $config = $this->get_post_type_template_config();
+        foreach ($config as $post_type => $settings) {
+            if (isset($settings['template_path'])) {
+                $paths[] = $settings['template_path'];
+            }
+        }
+        return $paths;
+    }
+
+    /**
+     * Initialize template support
+     */
+    private function init_template_support(): void
+    {
+        add_filter('happy_place_template_paths', [$this, 'add_template_paths']);
+    }
+
+    /**
+     * Get default capabilities for post types
+     */
+    private function get_default_capabilities(): array
+    {
+        return [
+            'edit_post' => 'edit_post',
+            'read_post' => 'read_post',
+            'delete_post' => 'delete_post',
+            'edit_posts' => 'edit_posts',
+            'edit_others_posts' => 'edit_others_posts',
+            'delete_posts' => 'delete_posts',
+            'publish_posts' => 'publish_posts',
+            'read_private_posts' => 'read_private_posts',
+            'read' => 'read',
+            'delete_private_posts' => 'delete_private_posts',
+            'delete_published_posts' => 'delete_published_posts',
+            'delete_others_posts' => 'delete_others_posts',
+            'edit_private_posts' => 'edit_private_posts',
+            'edit_published_posts' => 'edit_published_posts',
+            'create_posts' => 'edit_posts'
+        ];
+    }
+
+    /**
+     * Get capabilities for a specific post type
+     */
+    private function get_post_type_capabilities(string $post_type): array
+    {
+        $default_caps = $this->get_default_capabilities();
+
+        // For ACF post types, restrict to admins
+        if (strpos($post_type, 'acf-') === 0) {
+            return array_map(function ($cap) {
+                return 'manage_options';
+            }, $default_caps);
+        }
+
+        // Apply filters to allow customization
+        return apply_filters(
+            "hph_{$post_type}_capabilities",
+            $default_caps,
+            $post_type
+        );
     }
 }

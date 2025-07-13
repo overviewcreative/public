@@ -127,51 +127,60 @@ function hph_setup_user_roles()
 
 function hph_register_post_types()
 {
-    // Listing post type
-    register_post_type('listing', [
-        'labels' => [
-            'name' => __('Listings', 'happy-place'),
-            'singular_name' => __('Listing', 'happy-place'),
-            'add_new' => __('Add New Listing', 'happy-place'),
-            'add_new_item' => __('Add New Listing', 'happy-place'),
-            'edit_item' => __('Edit Listing', 'happy-place'),
-            'new_item' => __('New Listing', 'happy-place'),
-            'view_item' => __('View Listing', 'happy-place'),
-            'search_items' => __('Search Listings', 'happy-place'),
-            'not_found' => __('No listings found', 'happy-place'),
-            'not_found_in_trash' => __('No listings found in trash', 'happy-place'),
-            'menu_name' => __('Listings', 'happy-place')
-        ],
-        'public' => true,
-        'show_ui' => true,
-        'show_in_menu' => true,
-        'show_in_rest' => true,
-        'menu_icon' => 'dashicons-admin-home',
-        'supports' => ['title', 'editor', 'thumbnail', 'custom-fields', 'author'],
-        'has_archive' => true,
-        'rewrite' => ['slug' => 'listings'],
-        'capability_type' => 'listing',
-        'map_meta_cap' => true
-    ]);
+    // Only register post types if they don't exist (plugin takes precedence)
 
-    // Open House post type
-    register_post_type('open_house', [
-        'labels' => [
-            'name' => __('Open Houses', 'happy-place'),
-            'singular_name' => __('Open House', 'happy-place'),
-            'add_new' => __('Schedule Open House', 'happy-place'),
-            'add_new_item' => __('Schedule New Open House', 'happy-place'),
-            'edit_item' => __('Edit Open House', 'happy-place'),
-            'view_item' => __('View Open House', 'happy-place'),
-            'menu_name' => __('Open Houses', 'happy-place')
-        ],
-        'public' => false,
-        'show_ui' => true,
-        'show_in_menu' => 'edit.php?post_type=listing',
-        'supports' => ['title', 'custom-fields', 'author'],
-        'capability_type' => 'open_house',
-        'map_meta_cap' => true
-    ]);
+    // Listing post type - only register if plugin hasn't already done so
+    if (!post_type_exists('listing')) {
+        register_post_type('listing', [
+            'labels' => [
+                'name' => __('Listings', 'happy-place'),
+                'singular_name' => __('Listing', 'happy-place'),
+                'add_new' => __('Add New Listing', 'happy-place'),
+                'add_new_item' => __('Add New Listing', 'happy-place'),
+                'edit_item' => __('Edit Listing', 'happy-place'),
+                'new_item' => __('New Listing', 'happy-place'),
+                'view_item' => __('View Listing', 'happy-place'),
+                'search_items' => __('Search Listings', 'happy-place'),
+                'not_found' => __('No listings found', 'happy-place'),
+                'not_found_in_trash' => __('No listings found in trash', 'happy-place'),
+                'menu_name' => __('Listings', 'happy-place')
+            ],
+            'public' => true,
+            'show_ui' => true,
+            'show_in_menu' => true,
+            'show_in_rest' => true,
+            'menu_icon' => 'dashicons-admin-home',
+            'supports' => ['title', 'editor', 'thumbnail', 'custom-fields', 'author'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'listings'],
+            'capability_type' => 'listing',
+            'map_meta_cap' => true
+        ]);
+    }
+
+    // Open House post type - skip if plugin already registered as 'open-house'
+    if (!post_type_exists('open-house') && !post_type_exists('open_house')) {
+        // Register as open-house to match plugin convention
+        register_post_type('open-house', [
+            'labels' => [
+                'name' => __('Open Houses', 'happy-place'),
+                'singular_name' => __('Open House', 'happy-place'),
+                'add_new' => __('Schedule Open House', 'happy-place'),
+                'add_new_item' => __('Schedule New Open House', 'happy-place'),
+                'edit_item' => __('Edit Open House', 'happy-place'),
+                'view_item' => __('View Open House', 'happy-place'),
+                'menu_name' => __('Open Houses', 'happy-place')
+            ],
+            'public' => true,
+            'show_ui' => true,
+            'show_in_menu' => 'edit.php?post_type=listing',
+            'supports' => ['title', 'custom-fields', 'author'],
+            'has_archive' => true,
+            'rewrite' => ['slug' => 'open-houses'],
+            'capability_type' => 'post',
+            'map_meta_cap' => true
+        ]);
+    }
 }
 
 function hph_register_taxonomies()
